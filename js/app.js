@@ -1,6 +1,7 @@
 import { MOVES, MAX_ENERGY } from "./moves.js";
 import { resolveCombat } from "./combat.js";
 import { chooseAiMove } from "./ai.js";
+import { SKILLS, SKILL_KEYS, createFighter, moveCost, resolveWithSkills, skillMove } from "./skills.js";
 import { loadData, saveData } from "./storage.js";
 import { $, renderEnergy, renderMoves, renderRules, revealMove, showToast, showClap, updateHomeStats, setView } from "./ui.js";
 
@@ -20,8 +21,8 @@ let tutorialIndex = 0;
 
 function newState() {
   return {
-    player: { energy: 0, score: 0 },
-    ai: { energy: 0, score: 0 },
+    player: data.settings.skillsEnabled ? createFighter(data.settings.playerSkill) : { energy: 0, score: 0 },
+    ai: data.settings.skillsEnabled ? createFighter(data.settings.aiSkill) : { energy: 0, score: 0 },
     endless: { wins: 0, losses: 0, streak: 0, best: 0 },
     round: 1, busy: false, history: [], log: []
   };
@@ -30,6 +31,7 @@ function newState() {
 function init() {
   state = newState();
   renderRules();
+  populateSkillSelects();
   bindEvents();
   syncSettingsForm();
   updateHomeStats(data.stats);
@@ -50,6 +52,9 @@ function bindEvents() {
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => $(button.dataset.close).close()));
   $("settingsDialog").querySelector("form").addEventListener("submit", saveSettings);
   $("modeSelect").addEventListener("change", updateSettingsVisibility);
+  $("skillToggle").addEventListener("change", updateSettingsVisibility);
+  $("playerSkillSelect").addEventListener("change", updateSkillDescription);
+  $("aiSkillSelect").addEventListener("change", updateSkillDescription);
   $("quickModeSelect").addEventListener("change", changeMode);
 }
 
@@ -71,6 +76,7 @@ function render() {
   renderEnergy("aiEnergy", "aiEnergyCount", state.ai.energy);
   $("playerScore").textContent = state.player.score;
   $("aiScore").textContent = state.ai.score;
+  renderSkillStatus();
   $("roundNumber").textContent = state.round;
   const names = { easy: "简单", normal: "普通", hard: "困难", hell: "地狱" };
   const modeNames = { standard: "标准", endless: "无尽", zen: "禅" };
@@ -86,17 +92,31 @@ function render() {
   $("playerPanel").classList.toggle("energy-hidden", hideEnergy);
   $("aiPanel").classList.toggle("energy-hidden", hideEnergy);
   document.body.classList.toggle("zen-mode", data.settings.mode === "zen");
-  renderMoves(state.player.energy, selectMove, state.busy);
+  renderMoves(
+    state.player.energy, selectMove, state.busy,
+    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player
+  );
   $("logCount").textContent = state.log.length;
-  $("logList").innerHTML = state.log.map(item => `<li><b>第${item.round}回合</b>　你 ${MOVES[item.player].name} · AI ${MOVES[item.ai].name}　— ${item.title}</li>`).join("");
+  $("logList").innerHTML = state.log.map(item => `<li><b>第${item.round}回合</b>　你 ${skillMove(item.player).name} · AI ${skillMove(item.ai).name}　— ${item.title}</li>`).join("");
 }
 
 async function selectMove(playerKey) {
-  if (state.busy || MOVES[playerKey].cost > state.player.energy) return;
+  const playerCost = data.settings.skillsEnabled
+    ? moveCost(playerKey, data.settings.playerSkill, state.player)
+    : MOVES[playerKey].cost;
+  if (state.busy || playerCost > state.player.energy) return;
   state.busy = true;
   stopTimer();
-  renderMoves(state.player.energy, selectMove, true);
-  const aiKey = chooseAiMove(data.settings.difficulty, { aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history }, playerKey);
+  renderMoves(
+    state.player.energy, selectMove, true,
+    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player
+  );
+  const aiKey = chooseAiMove(data.settings.difficulty, {
+    aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history,
+    skillsEnabled: data.settings.skillsEnabled,
+    playerSkill: data.settings.playerSkill, aiSkill: data.settings.aiSkill,
+    playerFighter: state.player, aiFighter: state.ai
+  });
   revealMove("player", playerKey, true);
   revealMove("ai", aiKey, true);
   $("clash").className = "clash";
@@ -118,18 +138,41 @@ function beat() {
 }
 
 function settleRound(playerKey, aiKey) {
-  const result = resolveCombat(playerKey, aiKey);
+  const result = data.settings.skillsEnabled
+    ? resolveWithSkills(playerKey, aiKey, data.settings.playerSkill, data.settings.aiSkill)
+    : resolveCombat(playerKey, aiKey);
+  state.pendingPlayerMove = playerKey;
+  state.pendingAiMove = aiKey;
+  applyStartOfRoundSkills();
   spendAndGain("player", playerKey);
   spendAndGain("ai", aiKey);
+  const scoreBefore = { player: state.player.score, ai: state.ai.score };
   let resultClass = "draw";
-  if (result.playerHit && !result.aiHit) { state.ai.score++; resultClass = "lose"; }
-  if (result.aiHit && !result.playerHit) { state.player.score++; resultClass = "win"; }
+  let skillDetail = "";
+  if (data.settings.skillsEnabled) {
+    const damage = applySkillDamage(result, playerKey, aiKey);
+    resultClass = damage.player > 0 && damage.ai === 0 ? "lose" : damage.ai > 0 && damage.player === 0 ? "win" : "draw";
+    skillDetail = ` · 你 ${formatNumber(state.player.hp)} 生命，AI ${formatNumber(state.ai.hp)} 生命`;
+    applyEndOfRoundSkills(damage, playerKey, aiKey);
+    const deaths = resolveDeaths();
+    if (deaths.player || deaths.ai) {
+      if (deaths.player && !deaths.ai) state.ai.score++;
+      if (deaths.ai && !deaths.player) state.player.score++;
+      if (deaths.player && deaths.ai) resultClass = "draw";
+      resetLivesAfterDeath(deaths);
+    }
+  } else {
+    if (result.playerHit && !result.aiHit) { state.ai.score++; resultClass = "lose"; }
+    if (result.aiHit && !result.playerHit) { state.player.score++; resultClass = "win"; }
+  }
   if (data.settings.mode !== "standard") {
-    if (resultClass === "win") {
+    const playerScored = state.player.score > scoreBefore.player;
+    const aiScored = state.ai.score > scoreBefore.ai;
+    if (data.settings.skillsEnabled ? playerScored : resultClass === "win") {
       state.endless.wins++;
       state.endless.streak++;
       state.endless.best = Math.max(state.endless.best, state.endless.streak);
-    } else if (resultClass === "lose") {
+    } else if (data.settings.skillsEnabled ? aiScored : resultClass === "lose") {
       state.endless.losses++;
       state.endless.streak = 0;
     }
@@ -140,7 +183,7 @@ function settleRound(playerKey, aiKey) {
   $("clash").className = `clash ${resultClass}`;
   $("clashKicker").textContent = resultClass === "win" ? "你赢下这回合" : resultClass === "lose" ? "AI 赢下这回合" : "本回合平局";
   $("clashTitle").textContent = result.title;
-  $("clashDetail").textContent = result.detail;
+  $("clashDetail").textContent = result.detail + skillDetail;
   if (result.playerHit || result.aiHit) { playTone(resultClass === "win" ? 520 : 95, .18); if (navigator.vibrate) navigator.vibrate(resultClass === "win" ? [40, 30, 70] : 120); }
   state.round++;
   state.busy = false;
@@ -149,10 +192,134 @@ function settleRound(playerKey, aiKey) {
   else startTimer();
 }
 
+function populateSkillSelects() {
+  const options = SKILL_KEYS.map(key => `<option value="${key}">${SKILLS[key].name} · ${SKILLS[key].hp}血 / ${SKILLS[key].attack}攻</option>`).join("");
+  $("playerSkillSelect").innerHTML = options;
+  $("aiSkillSelect").innerHTML = options;
+}
+
+function updateSkillDescription() {
+  if (!$("skillToggle")?.checked) return;
+  const player = SKILLS[$("playerSkillSelect").value];
+  const ai = SKILLS[$("aiSkillSelect").value];
+  $("skillDescription").innerHTML = `<b>你 · ${player.name}</b>：${player.description}<br><b>AI · ${ai.name}</b>：${ai.description}`;
+}
+
+function renderSkillStatus() {
+  const enabled = data.settings.skillsEnabled;
+  for (const who of ["player", "ai"]) {
+    const skillKey = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
+    const skill = SKILLS[skillKey];
+    $(`${who}SkillBadge`).classList.toggle("hidden", !enabled);
+    $(`${who}HealthRow`).classList.toggle("hidden", !enabled);
+    if (!enabled) continue;
+    $(`${who}SkillBadge`).textContent = `${skill.name} · ${formatNumber(state[who].attack)}攻`;
+    $(`${who}HealthCount`).textContent = formatNumber(state[who].hp);
+    $(`${who}HealthBar`).style.width = `${Math.max(0, Math.min(100, state[who].hp / state[who].maxHp * 100))}%`;
+  }
+}
+
+function applyStartOfRoundSkills() {
+  for (const who of ["player", "ai"]) {
+    const skill = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
+    if (skill === "mother" && state[who].dealtDamageLastRound) {
+      state[who].hp = Math.min(state[who].maxHp, state[who].hp + .5);
+    }
+  }
+}
+
+function applySkillDamage(result, playerKey, aiKey) {
+  let playerDamage = result.playerDamage ?? (result.playerHit ? state.ai.attack : 0);
+  let aiDamage = result.aiDamage ?? (result.aiHit ? state.player.attack : 0);
+
+  if (playerDamage > 0 && data.settings.aiSkill === "tyrant" && state.ai.hp <= 1) playerDamage = 10;
+  if (aiDamage > 0 && data.settings.playerSkill === "tyrant" && state.player.hp <= 1) aiDamage = 10;
+  if (aiDamage > 0 && data.settings.playerSkill === "assassin" && playerKey === "knife" && !state.player.assassinUsed) {
+    aiDamage += .5;
+    state.player.assassinUsed = true;
+  }
+  if (playerDamage > 0 && data.settings.aiSkill === "assassin" && aiKey === "knife" && !state.ai.assassinUsed) {
+    playerDamage += .5;
+    state.ai.assassinUsed = true;
+  }
+
+  const playerMove = skillMove(playerKey);
+  const aiMove = skillMove(aiKey);
+  if (data.settings.playerSkill === "moon" && playerKey === "flash" && aiMove.type === "attack" && !result.playerHit) {
+    aiDamage += state.ai.attack;
+  }
+  if (data.settings.aiSkill === "moon" && aiKey === "flash" && playerMove.type === "attack" && !result.aiHit) {
+    playerDamage += state.player.attack;
+  }
+
+  state.player.hp -= playerDamage;
+  state.ai.hp -= aiDamage;
+  return { player: playerDamage, ai: aiDamage };
+}
+
+function applyEndOfRoundSkills(damage, playerKey, aiKey) {
+  const pairs = [
+    { who: "player", other: "ai", skill: data.settings.playerSkill, dealt: damage.ai, taken: damage.player, move: playerKey },
+    { who: "ai", other: "player", skill: data.settings.aiSkill, dealt: damage.player, taken: damage.ai, move: aiKey }
+  ];
+  for (const item of pairs) {
+    const fighter = state[item.who];
+    if (item.skill === "generalist" && (item.dealt > 0 || item.taken > 0)) fighter.boostForge = true;
+    if (item.skill === "reaper" && item.dealt > 0) { fighter.hp += 1; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); fighter.attack += 1; }
+    if (item.skill === "secretKeeper" && item.dealt > 0) { fighter.hp += 1; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); }
+    const opponentMove = item.who === "player" ? aiKey : playerKey;
+    if (item.skill === "prisoner" && item.move === "flash" && item.taken === 0 && skillMove(opponentMove).type === "attack") {
+      fighter.flashSuccesses++;
+      if (fighter.flashSuccesses % 2 === 0) fighter.attackDiscount++;
+    }
+    if (item.skill === "storm" && item.move === "katana" && item.dealt === 0) fighter.stormDiscount = 1;
+    if (item.skill === "demon") fighter.attack += .5;
+    fighter.dealtDamageLastRound = item.dealt > 0;
+  }
+}
+
+function resolveDeaths() {
+  let playerDead = state.player.hp <= 0;
+  let aiDead = state.ai.hp <= 0;
+  if (playerDead && data.settings.playerSkill === "hunter") state.ai.hp -= 1;
+  if (aiDead && data.settings.aiSkill === "hunter") state.player.hp -= 1;
+  playerDead = state.player.hp <= 0;
+  aiDead = state.ai.hp <= 0;
+  return { player: playerDead, ai: aiDead };
+}
+
+function resetLivesAfterDeath(deaths) {
+  if (!deaths.player && !deaths.ai) return;
+  const scores = { player: state.player.score, ai: state.ai.score };
+  state.player = createFighter(data.settings.playerSkill);
+  state.ai = createFighter(data.settings.aiSkill);
+  state.player.score = scores.player;
+  state.ai.score = scores.ai;
+}
+
+function formatNumber(value) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
 function spendAndGain(who, moveKey) {
-  const move = MOVES[moveKey];
-  state[who].energy = Math.max(0, state[who].energy - move.cost);
-  if (move.gain) state[who].energy = Math.min(MAX_ENERGY, state[who].energy + move.gain);
+  const move = skillMove(moveKey);
+  const skill = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
+  const otherMove = who === "player" ? state.pendingAiMove : state.pendingPlayerMove;
+  const cost = data.settings.skillsEnabled ? moveCost(moveKey, skill, state[who]) : move.cost;
+  state[who].energy = Math.max(0, state[who].energy - cost);
+  if (move.gain) {
+    const gain = data.settings.skillsEnabled && skill === "generalist" && state[who].boostForge ? 2 : move.gain;
+    state[who].energy = Math.min(MAX_ENERGY, state[who].energy + gain);
+    state[who].boostForge = false;
+  }
+  if (data.settings.skillsEnabled && skill === "whiteTower" && move.type === "attack" && otherMove !== moveKey) {
+    state[who].energy = Math.min(MAX_ENERGY, state[who].energy + cost);
+  }
+  if (data.settings.skillsEnabled && skill === "guardian") {
+    if (moveKey === "guard") state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .25);
+    if (moveKey === "catch") state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .5);
+  }
+  if (data.settings.skillsEnabled && skill === "storm" && moveKey === "katana") state[who].stormDiscount = 0;
 }
 
 function endGame() {
@@ -224,6 +391,9 @@ function syncSettingsForm() {
   $("timerToggle").checked = data.settings.timerEnabled;
   $("timerSeconds").value = data.settings.timerSeconds;
   $("energyToggle").checked = data.settings.energyVisible;
+  $("skillToggle").checked = data.settings.skillsEnabled;
+  $("playerSkillSelect").value = data.settings.playerSkill;
+  $("aiSkillSelect").value = data.settings.aiSkill;
   $("soundToggle").checked = data.settings.sound;
   updateSettingsVisibility();
 }
@@ -237,6 +407,9 @@ function saveSettings(event) {
     timerEnabled: $("timerToggle").checked,
     timerSeconds: Math.min(15, Math.max(0, Number.isFinite(Number($("timerSeconds").value)) ? Number($("timerSeconds").value) : 15)),
     energyVisible: $("energyToggle").checked,
+    skillsEnabled: $("skillToggle").checked,
+    playerSkill: $("playerSkillSelect").value,
+    aiSkill: $("aiSkillSelect").value,
     sound: $("soundToggle").checked
   };
   $("quickModeSelect").value = data.settings.mode;
@@ -250,6 +423,11 @@ function updateSettingsVisibility() {
   const mode = $("modeSelect").value;
   $("winScoreSetting").classList.toggle("hidden", mode !== "standard");
   $("energySetting").classList.toggle("hidden", mode === "zen");
+  const skillsOn = $("skillToggle").checked;
+  $("playerSkillSetting").classList.toggle("hidden", !skillsOn);
+  $("aiSkillSetting").classList.toggle("hidden", !skillsOn);
+  $("skillDescription").classList.toggle("hidden", !skillsOn);
+  updateSkillDescription();
 }
 
 function changeMode() {

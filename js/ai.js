@@ -1,7 +1,9 @@
 import { MOVES, canAfford } from "./moves.js";
 import { resolveCombat } from "./combat.js";
+import { availableMoveKeys, moveCost, resolveWithSkills, skillMove } from "./skills.js";
 
 const legalMoves = energy => Object.keys(MOVES).filter(key => canAfford(key, energy));
+const legalSkillMoves = (energy, skill, fighter) => availableMoveKeys(skill).filter(key => moveCost(key, skill, fighter) <= energy);
 
 const LEVELS = {
   easy:   { history: .20, noise: 1.8, explore: .18 },
@@ -10,8 +12,8 @@ const LEVELS = {
   hell:   { history: 1.15, noise: .08, explore: 0 }
 };
 
-function playerMoveWeights(playerEnergy, history, historyStrength) {
-  const candidates = legalMoves(playerEnergy);
+function playerMoveWeights(playerEnergy, history, historyStrength, skill = null, fighter = {}) {
+  const candidates = skill ? legalSkillMoves(playerEnergy, skill, fighter) : legalMoves(playerEnergy);
   const recent = history.slice(-14);
   const counts = Object.fromEntries(candidates.map(key => [key, 0]));
   recent.forEach(key => {
@@ -19,7 +21,7 @@ function playerMoveWeights(playerEnergy, history, historyStrength) {
   });
 
   return candidates.map(key => {
-    const move = MOVES[key];
+    const move = skillMove(key);
     let weight = 1;
     if (key === "forge") weight += playerEnergy <= 1 ? 2.4 : playerEnergy >= 5 ? -.45 : .55;
     if (move.type === "attack") {
@@ -35,12 +37,14 @@ function playerMoveWeights(playerEnergy, history, historyStrength) {
 }
 
 function futureEnergy(energy, moveKey) {
-  const move = MOVES[moveKey];
+  const move = skillMove(moveKey);
   return Math.max(0, energy - move.cost + (move.gain || 0));
 }
 
-function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy) {
-  const result = resolveCombat(playerKey, aiKey);
+function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy, context) {
+  const result = context.skillsEnabled
+    ? resolveWithSkills(playerKey, aiKey, context.playerSkill, context.aiSkill)
+    : resolveCombat(playerKey, aiKey);
   let score = 0;
   if (result.playerHit && !result.aiHit) score += 12;
   else if (result.aiHit && !result.playerHit) score -= 14;
@@ -66,13 +70,18 @@ function weightedChoice(scored, temperature) {
 
 export function chooseAiMove(difficulty, context) {
   const level = LEVELS[difficulty] || LEVELS.normal;
-  const aiMoves = legalMoves(context.aiEnergy);
-  const playerWeights = playerMoveWeights(context.playerEnergy, context.history, level.history);
+  const aiMoves = context.skillsEnabled
+    ? legalSkillMoves(context.aiEnergy, context.aiSkill, context.aiFighter)
+    : legalMoves(context.aiEnergy);
+  const playerWeights = playerMoveWeights(
+    context.playerEnergy, context.history, level.history,
+    context.skillsEnabled ? context.playerSkill : null, context.playerFighter
+  );
   const totalWeight = playerWeights.reduce((sum, item) => sum + item.weight, 0);
 
   const scored = aiMoves.map(aiKey => {
     const expected = playerWeights.reduce(
-      (sum, player) => sum + scoreMatchup(player.key, aiKey, context.aiEnergy, context.playerEnergy) * player.weight,
+      (sum, player) => sum + scoreMatchup(player.key, aiKey, context.aiEnergy, context.playerEnergy, context) * player.weight,
       0
     ) / totalWeight;
     return { key: aiKey, score: expected + (Math.random() - .5) * level.noise };

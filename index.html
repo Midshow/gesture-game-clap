@@ -76,6 +76,8 @@
       <div class="duel-board">
         <article class="fighter ai" id="aiPanel">
           <div class="fighter-head"><span class="avatar">忍</span><div><small>对手</small><strong>AI 忍者</strong></div></div>
+          <div class="skill-badge hidden" id="aiSkillBadge"></div>
+          <div class="health-row hidden" id="aiHealthRow"><span>生命</span><div class="health-track"><i id="aiHealthBar"></i></div><b id="aiHealthCount">2</b></div>
           <div class="energy-row"><span>能量</span><div class="energy-track" id="aiEnergy"></div><b id="aiEnergyCount">0</b></div>
           <div class="revealed-move hidden" id="aiMove"><span>？</span><strong>等待出招</strong></div>
         </article>
@@ -89,6 +91,8 @@
 
         <article class="fighter player" id="playerPanel">
           <div class="fighter-head"><span class="avatar">你</span><div><small>挑战者</small><strong>你</strong></div></div>
+          <div class="skill-badge hidden" id="playerSkillBadge"></div>
+          <div class="health-row hidden" id="playerHealthRow"><span>生命</span><div class="health-track"><i id="playerHealthBar"></i></div><b id="playerHealthCount">2</b></div>
           <div class="energy-row"><span>能量</span><div class="energy-track" id="playerEnergy"></div><b id="playerEnergyCount">0</b></div>
           <div class="revealed-move hidden" id="playerMove"><span>？</span><strong>等待出招</strong></div>
         </article>
@@ -121,6 +125,8 @@
     <div class="dialog-head"><div><p class="eyebrow">随时查阅</p><h2>规则图鉴</h2></div><button class="icon-button" data-close="rulesDialog" aria-label="关闭">×</button></div>
     <div class="rule-summary"><b>攻击等级 = 消耗能量数</b><span>同级互杀，高级压制低级。</span></div>
     <div class="rule-grid" id="ruleGrid"></div>
+    <h3 class="skill-rules-title">技能模式 · 两版共同规则</h3>
+    <div class="rule-grid" id="skillRuleGrid"></div>
   </dialog>
 
   <dialog id="settingsDialog">
@@ -132,6 +138,10 @@
       <label class="switch-row"><span>回合计时<small>超时自动选择“防”</small></span><input id="timerToggle" type="checkbox"></label>
       <label>计时秒数<input id="timerSeconds" type="number" min="0" max="15" step="any"></label>
       <label class="switch-row" id="energySetting"><span>显示能量<small>禅模式会强制隐藏</small></span><input id="energyToggle" type="checkbox"></label>
+      <label class="switch-row"><span>技能模式<small>启用血量、攻击力和角色被动</small></span><input id="skillToggle" type="checkbox"></label>
+      <label id="playerSkillSetting">你的技能<select id="playerSkillSelect"></select></label>
+      <label id="aiSkillSetting">AI 技能<select id="aiSkillSelect"></select></label>
+      <div class="skill-description hidden" id="skillDescription"></div>
       <label class="switch-row"><span>音效<small>拍手和命中反馈</small></span><input id="soundToggle" type="checkbox"></label>
       <button class="primary-button" value="confirm">保存并重新开始</button>
     </form>

@@ -1,6 +1,6 @@
 const KEY = "hezhang-game-v2";
 const defaults = {
-  settings: { mode: "standard", difficulty: "normal", winScore: 3, timerEnabled: false, timerSeconds: 15, energyVisible: true, sound: true },
+  settings: { mode: "standard", difficulty: "normal", winScore: 3, timerEnabled: false, timerSeconds: 15, energyVisible: true, skillsEnabled: false, playerSkill: "generalist", aiSkill: "generalist", sound: true },
   stats: { games: 0, wins: 0, losses: 0, bestStreak: 0, currentStreak: 0 },
   tutorialSeen: false
 };

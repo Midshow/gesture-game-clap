@@ -7,6 +7,7 @@ $sourceCss = Get-Content -LiteralPath (Join-Path $projectRoot 'styles.css') -Raw
 $scriptFiles = @(
   'js/moves.js',
   'js/combat.js',
+  'js/skills.js',
   'js/ai.js',
   'js/storage.js',
   'js/ui.js',
