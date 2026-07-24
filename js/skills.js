@@ -3,7 +3,7 @@ import { resolveCombat } from "./combat.js";
 
 export const SKILLS = {
   generalist: { name: "通识者", hp: 2, attack: 1, description: "造成或受到伤害后，下一次锻造获得2格能量。" },
-  whiteTower: { name: "白塔", hp: 2, attack: 1, description: "使用本回合仅由自己打出的武器时，返还能量花费。" },
+  whiteTower: { name: "白塔", hp: 2, attack: 1, description: "使用此前双方均未出过的武器时，返还该武器的能量花费；双方同时首次使用仍可触发。" },
   reaper: { name: "死神", hp: 1, attack: 1, description: "造成伤害后，生命与攻击力各增加1。" },
   tyrant: { name: "暴君", hp: 3, attack: 1, description: "生命不高于1时，造成的伤害变为10。" },
   mother: { name: "母亲", hp: 1, attack: 1, description: "上一回合造成过伤害时，回合开始恢复0.5生命。" },
@@ -41,6 +41,10 @@ export function moveCost(moveKey, skillKey, fighter) {
   }
   if (skillKey === "storm" && moveKey === "katana") cost = Math.max(1, cost - (fighter.stormDiscount || 0));
   return Math.max(0, cost);
+}
+
+export function whiteTowerRefunds(moveKey, weaponHistory) {
+  return skillMove(moveKey).type === "attack" && !weaponHistory.includes(moveKey);
 }
 
 export function availableMoveKeys(skillKey) {

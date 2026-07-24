@@ -1,6 +1,6 @@
 import { MOVES, canAfford } from "./moves.js";
 import { resolveCombat } from "./combat.js";
-import { availableMoveKeys, moveCost, previewSkillDamage, resolveWithSkills, skillMove } from "./skills.js";
+import { availableMoveKeys, moveCost, previewSkillDamage, resolveWithSkills, skillMove, whiteTowerRefunds } from "./skills.js";
 
 const legalMoves = energy => Object.keys(MOVES).filter(key => canAfford(key, energy));
 const legalSkillMoves = (energy, skill, fighter) => availableMoveKeys(skill).filter(key => moveCost(key, skill, fighter) <= energy);
@@ -73,6 +73,9 @@ function projectedEnergy(who, energy, moveKey, context) {
   const skill = who === "ai" ? context.aiSkill : context.playerSkill;
   const fighter = who === "ai" ? context.aiFighter : context.playerFighter;
   let value = Math.max(0, energy - moveCost(moveKey, skill, fighter) + (move.gain || 0));
+  if (skill === "whiteTower" && whiteTowerRefunds(moveKey, context.weaponHistory || [])) {
+    value += moveCost(moveKey, skill, fighter);
+  }
   if (skill === "generalist" && moveKey === "forge" && fighter.boostForge) value++;
   if (skill === "guardian" && moveKey === "guard") value += .25;
   if (skill === "guardian" && moveKey === "catch") value += .5;
@@ -88,7 +91,9 @@ function skillStrategyValue(aiKey, playerKey, damage, context) {
   if (skill === "mother" && damage.player > 0) value += .7;
   if (skill === "prisoner" && aiKey === "flash" && damage.ai === 0 && skillMove(playerKey).type === "attack") value += 2;
   if (skill === "storm" && aiKey === "katana" && damage.player === 0) value += .7;
-  if (skill === "whiteTower" && skillMove(aiKey).type === "attack" && aiKey !== playerKey) value += moveCost(aiKey, skill, context.aiFighter) * .5;
+  if (skill === "whiteTower" && whiteTowerRefunds(aiKey, context.weaponHistory || [])) {
+    value += moveCost(aiKey, skill, context.aiFighter) * .7;
+  }
   if (skill === "hunter" && context.aiFighter.hp <= 1 && context.playerFighter.hp <= 1) value += 3;
   if (skill === "tyrant" && context.aiFighter.hp <= 1 && damage.player > 0) value += 8;
   if (skill === "bulwark" && aiKey === "bigShield" && context.aiFighter.hp <= 1) value += 2;

@@ -246,7 +246,7 @@ function attackVsDefense(attackKey, defenseKey, defenderIsPlayer) {
 
 const SKILLS = {
   generalist: { name: "通识者", hp: 2, attack: 1, description: "造成或受到伤害后，下一次锻造获得2格能量。" },
-  whiteTower: { name: "白塔", hp: 2, attack: 1, description: "使用本回合仅由自己打出的武器时，返还能量花费。" },
+  whiteTower: { name: "白塔", hp: 2, attack: 1, description: "使用此前双方均未出过的武器时，返还该武器的能量花费；双方同时首次使用仍可触发。" },
   reaper: { name: "死神", hp: 1, attack: 1, description: "造成伤害后，生命与攻击力各增加1。" },
   tyrant: { name: "暴君", hp: 3, attack: 1, description: "生命不高于1时，造成的伤害变为10。" },
   mother: { name: "母亲", hp: 1, attack: 1, description: "上一回合造成过伤害时，回合开始恢复0.5生命。" },
@@ -284,6 +284,10 @@ function moveCost(moveKey, skillKey, fighter) {
   }
   if (skillKey === "storm" && moveKey === "katana") cost = Math.max(1, cost - (fighter.stormDiscount || 0));
   return Math.max(0, cost);
+}
+
+function whiteTowerRefunds(moveKey, weaponHistory) {
+  return skillMove(moveKey).type === "attack" && !weaponHistory.includes(moveKey);
 }
 
 function availableMoveKeys(skillKey) {
@@ -436,6 +440,9 @@ function projectedEnergy(who, energy, moveKey, context) {
   const skill = who === "ai" ? context.aiSkill : context.playerSkill;
   const fighter = who === "ai" ? context.aiFighter : context.playerFighter;
   let value = Math.max(0, energy - moveCost(moveKey, skill, fighter) + (move.gain || 0));
+  if (skill === "whiteTower" && whiteTowerRefunds(moveKey, context.weaponHistory || [])) {
+    value += moveCost(moveKey, skill, fighter);
+  }
   if (skill === "generalist" && moveKey === "forge" && fighter.boostForge) value++;
   if (skill === "guardian" && moveKey === "guard") value += .25;
   if (skill === "guardian" && moveKey === "catch") value += .5;
@@ -451,7 +458,9 @@ function skillStrategyValue(aiKey, playerKey, damage, context) {
   if (skill === "mother" && damage.player > 0) value += .7;
   if (skill === "prisoner" && aiKey === "flash" && damage.ai === 0 && skillMove(playerKey).type === "attack") value += 2;
   if (skill === "storm" && aiKey === "katana" && damage.player === 0) value += .7;
-  if (skill === "whiteTower" && skillMove(aiKey).type === "attack" && aiKey !== playerKey) value += moveCost(aiKey, skill, context.aiFighter) * .5;
+  if (skill === "whiteTower" && whiteTowerRefunds(aiKey, context.weaponHistory || [])) {
+    value += moveCost(aiKey, skill, context.aiFighter) * .7;
+  }
   if (skill === "hunter" && context.aiFighter.hp <= 1 && context.playerFighter.hp <= 1) value += 3;
   if (skill === "tyrant" && context.aiFighter.hp <= 1 && damage.player > 0) value += 8;
   if (skill === "bulwark" && aiKey === "bigShield" && context.aiFighter.hp <= 1) value += 2;
@@ -610,7 +619,7 @@ function newState() {
     player: data.settings.skillsEnabled ? createFighter(data.settings.playerSkill) : { energy: 0, score: 0 },
     ai: data.settings.skillsEnabled ? createFighter(data.settings.aiSkill) : { energy: 0, score: 0 },
     endless: { wins: 0, losses: 0, streak: 0, best: 0 },
-    round: 1, busy: false, history: [], log: []
+    round: 1, busy: false, history: [], weaponHistory: [], log: []
   };
 }
 
@@ -702,7 +711,8 @@ async function selectMove(playerKey) {
     aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history,
     skillsEnabled: data.settings.skillsEnabled,
     playerSkill: data.settings.playerSkill, aiSkill: data.settings.aiSkill,
-    playerFighter: state.player, aiFighter: state.ai
+    playerFighter: state.player, aiFighter: state.ai,
+    weaponHistory: state.weaponHistory
   });
   revealMove("player", playerKey, true);
   revealMove("ai", aiKey, true);
@@ -733,6 +743,9 @@ function settleRound(playerKey, aiKey) {
   applyStartOfRoundSkills();
   spendAndGain("player", playerKey);
   spendAndGain("ai", aiKey);
+  for (const key of [playerKey, aiKey]) {
+    if (skillMove(key).type === "attack" && !state.weaponHistory.includes(key)) state.weaponHistory.push(key);
+  }
   const scoreBefore = { player: state.player.score, ai: state.ai.score };
   let resultClass = "draw";
   let skillDetail = "";
@@ -906,7 +919,6 @@ function clearScoreFeedback() {
 function spendAndGain(who, moveKey) {
   const move = skillMove(moveKey);
   const skill = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
-  const otherMove = who === "player" ? state.pendingAiMove : state.pendingPlayerMove;
   const cost = data.settings.skillsEnabled ? moveCost(moveKey, skill, state[who]) : move.cost;
   state[who].energy = Math.max(0, state[who].energy - cost);
   if (move.gain) {
@@ -914,7 +926,7 @@ function spendAndGain(who, moveKey) {
     state[who].energy = Math.min(MAX_ENERGY, state[who].energy + gain);
     state[who].boostForge = false;
   }
-  if (data.settings.skillsEnabled && skill === "whiteTower" && move.type === "attack" && otherMove !== moveKey) {
+  if (data.settings.skillsEnabled && skill === "whiteTower" && whiteTowerRefunds(moveKey, state.weaponHistory)) {
     state[who].energy = Math.min(MAX_ENERGY, state[who].energy + cost);
   }
   if (data.settings.skillsEnabled && skill === "guardian") {

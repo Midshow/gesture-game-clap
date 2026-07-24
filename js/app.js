@@ -1,7 +1,7 @@
 import { MOVES, MAX_ENERGY } from "./moves.js";
 import { resolveCombat } from "./combat.js";
 import { chooseAiMove } from "./ai.js";
-import { SKILLS, SKILL_KEYS, createFighter, moveCost, previewSkillDamage, resolveWithSkills, skillMove } from "./skills.js";
+import { SKILLS, SKILL_KEYS, createFighter, moveCost, previewSkillDamage, resolveWithSkills, skillMove, whiteTowerRefunds } from "./skills.js";
 import { loadData, saveData } from "./storage.js";
 import { $, renderEnergy, renderMoves, renderRules, revealMove, showToast, showClap, updateHomeStats, setView } from "./ui.js";
 
@@ -24,7 +24,7 @@ function newState() {
     player: data.settings.skillsEnabled ? createFighter(data.settings.playerSkill) : { energy: 0, score: 0 },
     ai: data.settings.skillsEnabled ? createFighter(data.settings.aiSkill) : { energy: 0, score: 0 },
     endless: { wins: 0, losses: 0, streak: 0, best: 0 },
-    round: 1, busy: false, history: [], log: []
+    round: 1, busy: false, history: [], weaponHistory: [], log: []
   };
 }
 
@@ -116,7 +116,8 @@ async function selectMove(playerKey) {
     aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history,
     skillsEnabled: data.settings.skillsEnabled,
     playerSkill: data.settings.playerSkill, aiSkill: data.settings.aiSkill,
-    playerFighter: state.player, aiFighter: state.ai
+    playerFighter: state.player, aiFighter: state.ai,
+    weaponHistory: state.weaponHistory
   });
   revealMove("player", playerKey, true);
   revealMove("ai", aiKey, true);
@@ -147,6 +148,9 @@ function settleRound(playerKey, aiKey) {
   applyStartOfRoundSkills();
   spendAndGain("player", playerKey);
   spendAndGain("ai", aiKey);
+  for (const key of [playerKey, aiKey]) {
+    if (skillMove(key).type === "attack" && !state.weaponHistory.includes(key)) state.weaponHistory.push(key);
+  }
   const scoreBefore = { player: state.player.score, ai: state.ai.score };
   let resultClass = "draw";
   let skillDetail = "";
@@ -320,7 +324,6 @@ function clearScoreFeedback() {
 function spendAndGain(who, moveKey) {
   const move = skillMove(moveKey);
   const skill = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
-  const otherMove = who === "player" ? state.pendingAiMove : state.pendingPlayerMove;
   const cost = data.settings.skillsEnabled ? moveCost(moveKey, skill, state[who]) : move.cost;
   state[who].energy = Math.max(0, state[who].energy - cost);
   if (move.gain) {
@@ -328,7 +331,7 @@ function spendAndGain(who, moveKey) {
     state[who].energy = Math.min(MAX_ENERGY, state[who].energy + gain);
     state[who].boostForge = false;
   }
-  if (data.settings.skillsEnabled && skill === "whiteTower" && move.type === "attack" && otherMove !== moveKey) {
+  if (data.settings.skillsEnabled && skill === "whiteTower" && whiteTowerRefunds(moveKey, state.weaponHistory)) {
     state[who].energy = Math.min(MAX_ENERGY, state[who].energy + cost);
   }
   if (data.settings.skillsEnabled && skill === "guardian") {
