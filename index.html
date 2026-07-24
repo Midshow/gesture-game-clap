@@ -19,6 +19,11 @@
       <span><strong>合掌</strong><small>拍两下，见真招</small></span>
     </button>
     <nav class="top-actions" aria-label="快捷操作">
+      <select class="quick-mode" id="quickModeSelect" aria-label="游戏模式">
+        <option value="standard">标准</option>
+        <option value="endless">无尽</option>
+        <option value="zen">禅</option>
+      </select>
       <button class="quiet-button" id="rulesButton">规则</button>
       <button class="quiet-button" id="settingsButton">设置</button>
     </nav>
@@ -55,10 +60,16 @@
           <p class="eyebrow" id="modeLabel">AI 练习 · 普通</p>
           <h2 id="gameHeading">第 <span id="roundNumber">1</span> 回合</h2>
         </div>
-        <div class="score" aria-label="比分">
+        <div class="score" id="standardScore" aria-label="比分">
           <span><small>你</small><strong id="playerScore">0</strong></span>
           <i>:</i>
           <span><small>AI</small><strong id="aiScore">0</strong></span>
+        </div>
+        <div class="endless-score hidden" id="endlessScore" aria-label="无尽模式统计">
+          <span><small>胜</small><strong id="endlessWins">0</strong></span>
+          <span><small>负</small><strong id="endlessLosses">0</strong></span>
+          <span><small>连胜</small><strong id="endlessStreak">0</strong></span>
+          <span><small>最高</small><strong id="endlessBest">0</strong></span>
         </div>
       </div>
 
@@ -115,10 +126,12 @@
   <dialog id="settingsDialog">
     <div class="dialog-head"><div><p class="eyebrow">本机保存</p><h2>练习设置</h2></div><button class="icon-button" data-close="settingsDialog" aria-label="关闭">×</button></div>
     <form class="settings-form" method="dialog">
+      <label>游戏模式<select id="modeSelect"><option value="standard">标准 · 达到目标胜场结束</option><option value="endless">无尽 · 持续记录连胜</option><option value="zen">禅 · 隐藏能量的无尽对决</option></select></label>
       <label>AI 难度<select id="difficultySelect"><option value="easy">简单 · 会犯错</option><option value="normal">普通 · 懂基础策略</option><option value="hard">困难 · 会分析习惯</option><option value="mindreader">读心 · 特殊挑战</option></select></label>
-      <label>目标胜场<select id="winScoreSelect"><option value="1">一局定胜负</option><option value="3">先得 3 分</option><option value="5">先得 5 分</option><option value="7">先得 7 分</option></select></label>
+      <label id="winScoreSetting">目标胜场<select id="winScoreSelect"><option value="1">一局定胜负</option><option value="3">先得 3 分</option><option value="5">先得 5 分</option><option value="7">先得 7 分</option></select></label>
       <label class="switch-row"><span>回合计时<small>超时自动选择“防”</small></span><input id="timerToggle" type="checkbox"></label>
       <label>计时秒数<input id="timerSeconds" type="number" min="5" max="30" step="1"></label>
+      <label class="switch-row" id="energySetting"><span>显示能量<small>禅模式会强制隐藏</small></span><input id="energyToggle" type="checkbox"></label>
       <label class="switch-row"><span>音效<small>拍手和命中反馈</small></span><input id="soundToggle" type="checkbox"></label>
       <button class="primary-button" value="confirm">保存并重新开始</button>
     </form>

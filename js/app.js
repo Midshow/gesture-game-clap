@@ -19,7 +19,12 @@ const tutorial = [
 let tutorialIndex = 0;
 
 function newState() {
-  return { player: { energy: 0, score: 0 }, ai: { energy: 0, score: 0 }, round: 1, busy: false, history: [], log: [] };
+  return {
+    player: { energy: 0, score: 0 },
+    ai: { energy: 0, score: 0 },
+    endless: { wins: 0, losses: 0, streak: 0, best: 0 },
+    round: 1, busy: false, history: [], log: []
+  };
 }
 
 function init() {
@@ -44,6 +49,8 @@ function bindEvents() {
   $("tutorialNext").addEventListener("click", nextTutorial);
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => $(button.dataset.close).close()));
   $("settingsDialog").querySelector("form").addEventListener("submit", saveSettings);
+  $("modeSelect").addEventListener("change", updateSettingsVisibility);
+  $("quickModeSelect").addEventListener("change", changeMode);
 }
 
 function startGame() {
@@ -66,7 +73,19 @@ function render() {
   $("aiScore").textContent = state.ai.score;
   $("roundNumber").textContent = state.round;
   const names = { easy: "简单", normal: "普通", hard: "困难", mindreader: "读心挑战" };
-  $("modeLabel").textContent = `AI 练习 · ${names[data.settings.difficulty]}`;
+  const modeNames = { standard: "标准", endless: "无尽", zen: "禅" };
+  $("modeLabel").textContent = `${modeNames[data.settings.mode]}对决 · ${names[data.settings.difficulty]}`;
+  const continuous = data.settings.mode !== "standard";
+  $("standardScore").classList.toggle("hidden", continuous);
+  $("endlessScore").classList.toggle("hidden", !continuous);
+  $("endlessWins").textContent = state.endless.wins;
+  $("endlessLosses").textContent = state.endless.losses;
+  $("endlessStreak").textContent = state.endless.streak;
+  $("endlessBest").textContent = state.endless.best;
+  const hideEnergy = data.settings.mode === "zen" || !data.settings.energyVisible;
+  $("playerPanel").classList.toggle("energy-hidden", hideEnergy);
+  $("aiPanel").classList.toggle("energy-hidden", hideEnergy);
+  document.body.classList.toggle("zen-mode", data.settings.mode === "zen");
   renderMoves(state.player.energy, selectMove, state.busy);
   $("logCount").textContent = state.log.length;
   $("logList").innerHTML = state.log.map(item => `<li><b>第${item.round}回合</b>　你 ${MOVES[item.player].name} · AI ${MOVES[item.ai].name}　— ${item.title}</li>`).join("");
@@ -105,6 +124,16 @@ function settleRound(playerKey, aiKey) {
   let resultClass = "draw";
   if (result.playerHit && !result.aiHit) { state.ai.score++; resultClass = "lose"; }
   if (result.aiHit && !result.playerHit) { state.player.score++; resultClass = "win"; }
+  if (data.settings.mode !== "standard") {
+    if (resultClass === "win") {
+      state.endless.wins++;
+      state.endless.streak++;
+      state.endless.best = Math.max(state.endless.best, state.endless.streak);
+    } else if (resultClass === "lose") {
+      state.endless.losses++;
+      state.endless.streak = 0;
+    }
+  }
   if (result.reset || result.playerHit || result.aiHit) state.player.energy = state.ai.energy = 0;
   state.history.push(playerKey);
   state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title });
@@ -116,7 +145,7 @@ function settleRound(playerKey, aiKey) {
   state.round++;
   state.busy = false;
   render();
-  if (state.player.score >= data.settings.winScore || state.ai.score >= data.settings.winScore) setTimeout(endGame, 550);
+  if (data.settings.mode === "standard" && (state.player.score >= data.settings.winScore || state.ai.score >= data.settings.winScore)) setTimeout(endGame, 550);
   else startTimer();
 }
 
@@ -188,26 +217,48 @@ function renderTutorial() {
 }
 
 function syncSettingsForm() {
+  $("quickModeSelect").value = data.settings.mode;
+  $("modeSelect").value = data.settings.mode;
   $("difficultySelect").value = data.settings.difficulty;
   $("winScoreSelect").value = String(data.settings.winScore);
   $("timerToggle").checked = data.settings.timerEnabled;
   $("timerSeconds").value = data.settings.timerSeconds;
+  $("energyToggle").checked = data.settings.energyVisible;
   $("soundToggle").checked = data.settings.sound;
+  updateSettingsVisibility();
 }
 
 function saveSettings(event) {
   event.preventDefault();
   data.settings = {
+    mode: $("modeSelect").value,
     difficulty: $("difficultySelect").value,
     winScore: Number($("winScoreSelect").value),
     timerEnabled: $("timerToggle").checked,
     timerSeconds: Math.min(30, Math.max(5, Number($("timerSeconds").value) || 15)),
+    energyVisible: $("energyToggle").checked,
     sound: $("soundToggle").checked
   };
+  $("quickModeSelect").value = data.settings.mode;
   saveData(data);
   $("settingsDialog").close();
   showToast("设置已保存");
   if ($("gameView").classList.contains("active")) resetGame();
+}
+
+function updateSettingsVisibility() {
+  const mode = $("modeSelect").value;
+  $("winScoreSetting").classList.toggle("hidden", mode !== "standard");
+  $("energySetting").classList.toggle("hidden", mode === "zen");
+}
+
+function changeMode() {
+  data.settings.mode = $("quickModeSelect").value;
+  saveData(data);
+  syncSettingsForm();
+  if ($("gameView").classList.contains("active")) resetGame();
+  else render();
+  showToast(`已切换到${{ standard: "标准", endless: "无尽", zen: "禅" }[data.settings.mode]}模式`);
 }
 
 function playTone(frequency, duration = .08) {
