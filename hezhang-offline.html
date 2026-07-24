@@ -22,6 +22,8 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
 @media(max-width:980px){.move-grid{grid-template-columns:repeat(5,1fr)}}@media(max-width:800px){main{width:min(100% - 24px,1180px)}.topbar{height:65px;padding:0 14px}.brand small{display:none}.home-view{padding-top:50px}.quick-rules{grid-template-columns:1fr}.quick-rules article{min-height:unset}.home-stats{justify-content:space-between;gap:8px}.duel-board{grid-template-columns:1fr 1fr}.clash{grid-column:1/-1;grid-row:2;min-height:170px}.fighter{min-height:200px;padding:16px}.rule-grid{grid-template-columns:1fr}.rule-summary{flex-direction:column}.settings-form>label{grid-template-columns:1fr;gap:9px}.switch-row{grid-template-columns:1fr auto!important}.move-dock{padding:15px}.game-toolbar{align-items:center}}@media(max-width:480px){.hero h1{font-size:64px}.hero-actions>*{width:100%}.quick-rules{margin-top:55px}.fighter-head .avatar{width:38px;height:38px}.fighter-head strong{font-size:13px}.energy-row{grid-template-columns:1fr 20px}.energy-row>span{display:none}.revealed-move span{font-size:29px}.revealed-move strong{font-size:18px}.score{gap:8px}.score strong{font-size:25px}.move-grid{grid-template-columns:repeat(5,1fr);gap:5px}.move-card{min-height:72px;padding:8px 3px 5px}.move-card .move-icon{font-size:18px}.move-card strong{font-size:11px;margin:6px 0 2px}.move-card small{font-size:8px}.move-cost{width:17px;height:17px;font-size:8px}.game-over-actions>*{width:100%}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .skill-rules-title{margin:30px 0 12px;font:800 24px "STKaiti","KaiTi",serif}
+.fighter.player{grid-column:1;grid-row:1}.clash{grid-column:2;grid-row:1}.fighter.ai{grid-column:3;grid-row:1}.fighter.point-won{animation:panelPoint .65s ease}.fighter.point-lost{animation:panelFade .65s ease}.score-feedback{min-height:24px;margin-top:12px;padding:0 10px;border-left:3px solid transparent;color:var(--muted);font-size:12px;display:flex;align-items:center;opacity:0;transform:translateY(-3px);transition:.2s}.score-feedback.show{opacity:1;transform:translateY(0)}.score-feedback.win{border-color:#52728a;color:#324f67}.score-feedback.lose{border-color:var(--red);color:var(--red-dark)}@keyframes panelPoint{0%,100%{box-shadow:none}35%{box-shadow:0 0 0 3px rgba(82,114,138,.16)}}@keyframes panelFade{0%,100%{opacity:1}35%{opacity:.72}}
+@media(max-width:800px){.fighter.player{grid-column:1;grid-row:1}.fighter.ai{grid-column:2;grid-row:1}.clash{grid-column:1/-1;grid-row:2}}
 
   </style>
 </head>
@@ -85,6 +87,7 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
           <span><small>最高</small><strong id="endlessBest">0</strong></span>
         </div>
       </div>
+      <div class="score-feedback" id="scoreFeedback" role="status" aria-live="polite"></div>
 
       <div class="duel-board">
         <article class="fighter ai" id="aiPanel">
@@ -650,6 +653,7 @@ function startGame() {
 function resetGame() {
   stopTimer();
   state = newState();
+  clearScoreFeedback();
   render();
   startTimer();
 }
@@ -760,6 +764,7 @@ function settleRound(playerKey, aiKey) {
       state.endless.streak = 0;
     }
   }
+  showScoreFeedback(state.player.score - scoreBefore.player, state.ai.score - scoreBefore.ai);
   if (result.reset || result.playerHit || result.aiHit) state.player.energy = state.ai.energy = 0;
   state.history.push(playerKey);
   state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title });
@@ -868,6 +873,34 @@ function resetLivesAfterDeath(deaths) {
 
 function formatNumber(value) {
   return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+function showScoreFeedback(playerPoint, aiPoint) {
+  if (!playerPoint && !aiPoint) return;
+  const feedback = $("scoreFeedback");
+  const playerPanel = $("playerPanel");
+  const aiPanel = $("aiPanel");
+  clearTimeout(showScoreFeedback.timeout);
+  feedback.className = `score-feedback show ${playerPoint ? "win" : aiPoint ? "lose" : ""}`;
+  feedback.textContent = playerPoint
+    ? "你拿下一分。保持这个节奏。"
+    : aiPoint
+      ? "对手拿下一分。下一回合还有机会。"
+      : "双方同时倒下，本回合不计分。";
+  playerPanel.classList.toggle("point-won", Boolean(playerPoint));
+  playerPanel.classList.toggle("point-lost", Boolean(aiPoint));
+  aiPanel.classList.toggle("point-won", Boolean(aiPoint));
+  aiPanel.classList.toggle("point-lost", Boolean(playerPoint));
+  showScoreFeedback.timeout = setTimeout(clearScoreFeedback, 2400);
+}
+
+function clearScoreFeedback() {
+  const feedback = $("scoreFeedback");
+  if (!feedback) return;
+  feedback.className = "score-feedback";
+  feedback.textContent = "";
+  $("playerPanel")?.classList.remove("point-won", "point-lost");
+  $("aiPanel")?.classList.remove("point-won", "point-lost");
 }
 
 function spendAndGain(who, moveKey) {

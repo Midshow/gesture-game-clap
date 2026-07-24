@@ -67,6 +67,7 @@ function startGame() {
 function resetGame() {
   stopTimer();
   state = newState();
+  clearScoreFeedback();
   render();
   startTimer();
 }
@@ -177,6 +178,7 @@ function settleRound(playerKey, aiKey) {
       state.endless.streak = 0;
     }
   }
+  showScoreFeedback(state.player.score - scoreBefore.player, state.ai.score - scoreBefore.ai);
   if (result.reset || result.playerHit || result.aiHit) state.player.energy = state.ai.energy = 0;
   state.history.push(playerKey);
   state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title });
@@ -285,6 +287,34 @@ function resetLivesAfterDeath(deaths) {
 
 function formatNumber(value) {
   return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+function showScoreFeedback(playerPoint, aiPoint) {
+  if (!playerPoint && !aiPoint) return;
+  const feedback = $("scoreFeedback");
+  const playerPanel = $("playerPanel");
+  const aiPanel = $("aiPanel");
+  clearTimeout(showScoreFeedback.timeout);
+  feedback.className = `score-feedback show ${playerPoint ? "win" : aiPoint ? "lose" : ""}`;
+  feedback.textContent = playerPoint
+    ? "你拿下一分。保持这个节奏。"
+    : aiPoint
+      ? "对手拿下一分。下一回合还有机会。"
+      : "双方同时倒下，本回合不计分。";
+  playerPanel.classList.toggle("point-won", Boolean(playerPoint));
+  playerPanel.classList.toggle("point-lost", Boolean(aiPoint));
+  aiPanel.classList.toggle("point-won", Boolean(aiPoint));
+  aiPanel.classList.toggle("point-lost", Boolean(playerPoint));
+  showScoreFeedback.timeout = setTimeout(clearScoreFeedback, 2400);
+}
+
+function clearScoreFeedback() {
+  const feedback = $("scoreFeedback");
+  if (!feedback) return;
+  feedback.className = "score-feedback";
+  feedback.textContent = "";
+  $("playerPanel")?.classList.remove("point-won", "point-lost");
+  $("aiPanel")?.classList.remove("point-won", "point-lost");
 }
 
 function spendAndGain(who, moveKey) {
