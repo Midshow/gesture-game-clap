@@ -7,13 +7,13 @@ export function renderEnergy(id, countId, energy) {
   $(countId).textContent = energy;
 }
 
-export function renderMoves(filter, energy, onSelect, busy = false) {
-  const keys = Object.keys(MOVES).filter(key => filter === "attack" ? MOVES[key].type === "attack" : MOVES[key].type === "basic");
+export function renderMoves(energy, onSelect, busy = false) {
+  const keys = Object.keys(MOVES);
   const grid = $("moveGrid");
   grid.innerHTML = keys.map(key => {
     const move = MOVES[key];
     const shortfall = Math.max(0, move.cost - energy);
-    return `<button class="move-card" data-move="${key}" ${busy || shortfall ? "disabled" : ""} aria-label="${move.name}，${move.summary}">
+    return `<button class="move-card ${move.type}" data-move="${key}" ${busy || shortfall ? "disabled" : ""} aria-label="${move.name}，${move.summary}">
       <span class="move-icon">${move.icon}</span><strong>${move.name}</strong><small>${shortfall ? `还差 ${shortfall} 格能量` : move.summary}</small>
       <span class="move-cost">${move.cost || (move.gain ? "+1" : "0")}</span>
     </button>`;

@@ -6,7 +6,6 @@ import { $, renderEnergy, renderMoves, renderRules, revealMove, showToast, showC
 
 let data = loadData();
 let state;
-let activeFilter = "basic";
 let timerId = null;
 let audioContext = null;
 
@@ -44,11 +43,6 @@ function bindEvents() {
   $("backHomeButton").addEventListener("click", () => { $("gameOverDialog").close(); setView("home"); updateHomeStats(data.stats); });
   $("tutorialNext").addEventListener("click", nextTutorial);
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => $(button.dataset.close).close()));
-  document.querySelectorAll(".move-tabs button").forEach(button => button.addEventListener("click", () => {
-    activeFilter = button.dataset.filter;
-    document.querySelectorAll(".move-tabs button").forEach(tab => tab.classList.toggle("active", tab === button));
-    renderMoves(activeFilter, state.player.energy, selectMove, state.busy);
-  }));
   $("settingsDialog").querySelector("form").addEventListener("submit", saveSettings);
 }
 
@@ -73,7 +67,7 @@ function render() {
   $("roundNumber").textContent = state.round;
   const names = { easy: "简单", normal: "普通", hard: "困难", mindreader: "读心挑战" };
   $("modeLabel").textContent = `AI 练习 · ${names[data.settings.difficulty]}`;
-  renderMoves(activeFilter, state.player.energy, selectMove, state.busy);
+  renderMoves(state.player.energy, selectMove, state.busy);
   $("logCount").textContent = state.log.length;
   $("logList").innerHTML = state.log.map(item => `<li><b>第${item.round}回合</b>　你 ${MOVES[item.player].name} · AI ${MOVES[item.ai].name}　— ${item.title}</li>`).join("");
 }
@@ -82,7 +76,7 @@ async function selectMove(playerKey) {
   if (state.busy || MOVES[playerKey].cost > state.player.energy) return;
   state.busy = true;
   stopTimer();
-  renderMoves(activeFilter, state.player.energy, selectMove, true);
+  renderMoves(state.player.energy, selectMove, true);
   const aiKey = chooseAiMove(data.settings.difficulty, { aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history }, playerKey);
   revealMove("player", playerKey, true);
   revealMove("ai", aiKey, true);
