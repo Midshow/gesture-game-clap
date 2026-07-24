@@ -235,7 +235,7 @@ function saveSettings(event) {
     difficulty: $("difficultySelect").value,
     winScore: Number($("winScoreSelect").value),
     timerEnabled: $("timerToggle").checked,
-    timerSeconds: Math.min(30, Math.max(5, Number($("timerSeconds").value) || 15)),
+    timerSeconds: Math.min(15, Math.max(0, Number.isFinite(Number($("timerSeconds").value)) ? Number($("timerSeconds").value) : 15)),
     energyVisible: $("energyToggle").checked,
     sound: $("soundToggle").checked
   };
