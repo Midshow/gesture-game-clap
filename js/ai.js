@@ -1,6 +1,6 @@
 import { MOVES, canAfford } from "./moves.js";
 import { resolveCombat } from "./combat.js";
-import { availableMoveKeys, moveCost, resolveWithSkills, skillMove } from "./skills.js";
+import { availableMoveKeys, moveCost, previewSkillDamage, resolveWithSkills, skillMove } from "./skills.js";
 
 const legalMoves = energy => Object.keys(MOVES).filter(key => canAfford(key, energy));
 const legalSkillMoves = (energy, skill, fighter) => availableMoveKeys(skill).filter(key => moveCost(key, skill, fighter) <= energy);
@@ -46,15 +46,53 @@ function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy, context) {
     ? resolveWithSkills(playerKey, aiKey, context.playerSkill, context.aiSkill)
     : resolveCombat(playerKey, aiKey);
   let score = 0;
-  if (result.playerHit && !result.aiHit) score += 12;
+  if (context.skillsEnabled) {
+    const damage = previewSkillDamage(
+      result, playerKey, aiKey, context.playerSkill, context.aiSkill,
+      context.playerFighter, context.aiFighter
+    );
+    score += damage.player * 5.5;
+    score -= damage.ai * 6.5;
+    if (damage.player >= context.playerFighter.hp) score += 28;
+    if (damage.ai >= context.aiFighter.hp) score -= 34;
+    if (damage.player === 0 && damage.ai === 0) score += .45;
+    score += skillStrategyValue(aiKey, playerKey, damage, context);
+  } else if (result.playerHit && !result.aiHit) score += 12;
   else if (result.aiHit && !result.playerHit) score -= 14;
-  else if (result.aiHit && result.playerHit) score -= 2.5;
   else score += .8;
   if (result.reset) score += aiEnergy < playerEnergy ? 2.2 : -.8;
-  score += futureEnergy(aiEnergy, aiKey) * .28;
-  score -= futureEnergy(playerEnergy, playerKey) * .12;
+  score += projectedEnergy("ai", aiEnergy, aiKey, context) * .32;
+  score -= projectedEnergy("player", playerEnergy, playerKey, context) * .14;
   if (aiKey === "forge" && playerEnergy > 0) score -= .45;
   return score;
+}
+
+function projectedEnergy(who, energy, moveKey, context) {
+  const move = skillMove(moveKey);
+  if (!context.skillsEnabled) return futureEnergy(energy, moveKey);
+  const skill = who === "ai" ? context.aiSkill : context.playerSkill;
+  const fighter = who === "ai" ? context.aiFighter : context.playerFighter;
+  let value = Math.max(0, energy - moveCost(moveKey, skill, fighter) + (move.gain || 0));
+  if (skill === "generalist" && moveKey === "forge" && fighter.boostForge) value++;
+  if (skill === "guardian" && moveKey === "guard") value += .25;
+  if (skill === "guardian" && moveKey === "catch") value += .5;
+  return value;
+}
+
+function skillStrategyValue(aiKey, playerKey, damage, context) {
+  const skill = context.aiSkill;
+  let value = 0;
+  if (skill === "reaper" && damage.player > 0) value += 4;
+  if (skill === "secretKeeper" && damage.player > 0) value += 2.5;
+  if (skill === "generalist" && (damage.player > 0 || damage.ai > 0)) value += 1.2;
+  if (skill === "mother" && damage.player > 0) value += .7;
+  if (skill === "prisoner" && aiKey === "flash" && damage.ai === 0 && skillMove(playerKey).type === "attack") value += 2;
+  if (skill === "storm" && aiKey === "katana" && damage.player === 0) value += .7;
+  if (skill === "whiteTower" && skillMove(aiKey).type === "attack" && aiKey !== playerKey) value += moveCost(aiKey, skill, context.aiFighter) * .5;
+  if (skill === "hunter" && context.aiFighter.hp <= 1 && context.playerFighter.hp <= 1) value += 3;
+  if (skill === "tyrant" && context.aiFighter.hp <= 1 && damage.player > 0) value += 8;
+  if (skill === "bulwark" && aiKey === "bigShield" && context.aiFighter.hp <= 1) value += 2;
+  return value;
 }
 
 function weightedChoice(scored, temperature) {

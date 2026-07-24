@@ -16,7 +16,7 @@ export function resolveCombat(playerKey, aiKey) {
   if (playerKey === "forge" && ai.type === "attack") return outcome(true, false, false, `${ai.name}命中`, "锻造时没有防御。");
   if (aiKey === "forge" && player.type === "attack") return outcome(false, true, false, `${player.name}命中`, "锻造时没有防御。");
   if (player.type === "attack" && ai.type === "attack") {
-    if (player.level === ai.level) return outcome(true, true, false, "同级互杀", `${player.level}级对${ai.level}级，双方同时命中。`);
+    if (player.level === ai.level) return outcome(false, false, false, "抵刀", `${player.level}级对${ai.level}级，双方均不受伤。`);
     return player.level > ai.level
       ? outcome(false, true, false, `${player.name}压制${ai.name}`, "高级攻击压制低级攻击。")
       : outcome(true, false, false, `${ai.name}压制${player.name}`, "高级攻击压制低级攻击。");

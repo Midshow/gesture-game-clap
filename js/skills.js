@@ -65,7 +65,7 @@ export function resolveWithSkills(playerKey, aiKey, playerSkill, aiSkill) {
     const playerLevel = playerStorm ? 1.5 : MOVES[playerKey].level;
     const aiLevel = aiStorm ? 1.5 : MOVES[aiKey].level;
     result = playerLevel === aiLevel
-      ? { playerHit: true, aiHit: true, reset: false, title: "同级互杀", detail: `${playerLevel}级对${aiLevel}级。` }
+      ? { playerHit: false, aiHit: false, reset: false, title: "抵刀", detail: `${playerLevel}级对${aiLevel}级，双方均不受伤。` }
       : playerLevel > aiLevel
         ? { playerHit: false, aiHit: true, reset: false, title: "攻击压制", detail: `${playerLevel}级压制${aiLevel}级。` }
         : { playerHit: true, aiHit: false, reset: false, title: "攻击压制", detail: `${aiLevel}级压制${playerLevel}级。` };
@@ -80,6 +80,23 @@ export function resolveWithSkills(playerKey, aiKey, playerSkill, aiSkill) {
   if (playerSkill === "assassin" && playerKey === "guard" && aiKey === "shuriken") result = blocked("刺客识破手里剑");
   if (aiSkill === "assassin" && aiKey === "guard" && playerKey === "shuriken") result = blocked("刺客识破手里剑");
   return result;
+}
+
+export function previewSkillDamage(result, playerKey, aiKey, playerSkill, aiSkill, player, ai) {
+  let playerDamage = result.playerDamage ?? (result.playerHit ? ai.attack : 0);
+  let aiDamage = result.aiDamage ?? (result.aiHit ? player.attack : 0);
+
+  if (playerDamage > 0 && aiSkill === "tyrant" && ai.hp <= 1) playerDamage = 10;
+  if (aiDamage > 0 && playerSkill === "tyrant" && player.hp <= 1) aiDamage = 10;
+  if (aiDamage > 0 && playerSkill === "assassin" && playerKey === "knife" && !player.assassinUsed) aiDamage += .5;
+  if (playerDamage > 0 && aiSkill === "assassin" && aiKey === "knife" && !ai.assassinUsed) playerDamage += .5;
+
+  const playerMove = skillMove(playerKey);
+  const aiMove = skillMove(aiKey);
+  if (playerSkill === "moon" && playerKey === "flash" && aiMove.type === "attack" && !result.playerHit) aiDamage += ai.attack;
+  if (aiSkill === "moon" && aiKey === "flash" && playerMove.type === "attack" && !result.aiHit) playerDamage += player.attack;
+
+  return { player: playerDamage, ai: aiDamage };
 }
 
 function resolveBigShield(playerKey, aiKey) {

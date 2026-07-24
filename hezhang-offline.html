@@ -136,7 +136,7 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
 
   <dialog id="rulesDialog">
     <div class="dialog-head"><div><p class="eyebrow">随时查阅</p><h2>规则图鉴</h2></div><button class="icon-button" data-close="rulesDialog" aria-label="关闭">×</button></div>
-    <div class="rule-summary"><b>攻击等级 = 消耗能量数</b><span>同级互杀，高级压制低级。</span></div>
+    <div class="rule-summary"><b>攻击等级 = 消耗能量数</b><span>同级抵刀且均不受伤，高级压制低级。</span></div>
     <div class="rule-grid" id="ruleGrid"></div>
     <h3 class="skill-rules-title">技能模式 · 两版共同规则</h3>
     <div class="rule-grid" id="skillRuleGrid"></div>
@@ -215,7 +215,7 @@ function resolveCombat(playerKey, aiKey) {
   if (playerKey === "forge" && ai.type === "attack") return outcome(true, false, false, `${ai.name}命中`, "锻造时没有防御。");
   if (aiKey === "forge" && player.type === "attack") return outcome(false, true, false, `${player.name}命中`, "锻造时没有防御。");
   if (player.type === "attack" && ai.type === "attack") {
-    if (player.level === ai.level) return outcome(true, true, false, "同级互杀", `${player.level}级对${ai.level}级，双方同时命中。`);
+    if (player.level === ai.level) return outcome(false, false, false, "抵刀", `${player.level}级对${ai.level}级，双方均不受伤。`);
     return player.level > ai.level
       ? outcome(false, true, false, `${player.name}压制${ai.name}`, "高级攻击压制低级攻击。")
       : outcome(true, false, false, `${ai.name}压制${player.name}`, "高级攻击压制低级攻击。");
@@ -305,7 +305,7 @@ function resolveWithSkills(playerKey, aiKey, playerSkill, aiSkill) {
     const playerLevel = playerStorm ? 1.5 : MOVES[playerKey].level;
     const aiLevel = aiStorm ? 1.5 : MOVES[aiKey].level;
     result = playerLevel === aiLevel
-      ? { playerHit: true, aiHit: true, reset: false, title: "同级互杀", detail: `${playerLevel}级对${aiLevel}级。` }
+      ? { playerHit: false, aiHit: false, reset: false, title: "抵刀", detail: `${playerLevel}级对${aiLevel}级，双方均不受伤。` }
       : playerLevel > aiLevel
         ? { playerHit: false, aiHit: true, reset: false, title: "攻击压制", detail: `${playerLevel}级压制${aiLevel}级。` }
         : { playerHit: true, aiHit: false, reset: false, title: "攻击压制", detail: `${aiLevel}级压制${playerLevel}级。` };
@@ -320,6 +320,23 @@ function resolveWithSkills(playerKey, aiKey, playerSkill, aiSkill) {
   if (playerSkill === "assassin" && playerKey === "guard" && aiKey === "shuriken") result = blocked("刺客识破手里剑");
   if (aiSkill === "assassin" && aiKey === "guard" && playerKey === "shuriken") result = blocked("刺客识破手里剑");
   return result;
+}
+
+function previewSkillDamage(result, playerKey, aiKey, playerSkill, aiSkill, player, ai) {
+  let playerDamage = result.playerDamage ?? (result.playerHit ? ai.attack : 0);
+  let aiDamage = result.aiDamage ?? (result.aiHit ? player.attack : 0);
+
+  if (playerDamage > 0 && aiSkill === "tyrant" && ai.hp <= 1) playerDamage = 10;
+  if (aiDamage > 0 && playerSkill === "tyrant" && player.hp <= 1) aiDamage = 10;
+  if (aiDamage > 0 && playerSkill === "assassin" && playerKey === "knife" && !player.assassinUsed) aiDamage += .5;
+  if (playerDamage > 0 && aiSkill === "assassin" && aiKey === "knife" && !ai.assassinUsed) playerDamage += .5;
+
+  const playerMove = skillMove(playerKey);
+  const aiMove = skillMove(aiKey);
+  if (playerSkill === "moon" && playerKey === "flash" && aiMove.type === "attack" && !result.playerHit) aiDamage += ai.attack;
+  if (aiSkill === "moon" && aiKey === "flash" && playerMove.type === "attack" && !result.aiHit) playerDamage += player.attack;
+
+  return { player: playerDamage, ai: aiDamage };
 }
 
 function resolveBigShield(playerKey, aiKey) {
@@ -389,15 +406,53 @@ function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy, context) {
     ? resolveWithSkills(playerKey, aiKey, context.playerSkill, context.aiSkill)
     : resolveCombat(playerKey, aiKey);
   let score = 0;
-  if (result.playerHit && !result.aiHit) score += 12;
+  if (context.skillsEnabled) {
+    const damage = previewSkillDamage(
+      result, playerKey, aiKey, context.playerSkill, context.aiSkill,
+      context.playerFighter, context.aiFighter
+    );
+    score += damage.player * 5.5;
+    score -= damage.ai * 6.5;
+    if (damage.player >= context.playerFighter.hp) score += 28;
+    if (damage.ai >= context.aiFighter.hp) score -= 34;
+    if (damage.player === 0 && damage.ai === 0) score += .45;
+    score += skillStrategyValue(aiKey, playerKey, damage, context);
+  } else if (result.playerHit && !result.aiHit) score += 12;
   else if (result.aiHit && !result.playerHit) score -= 14;
-  else if (result.aiHit && result.playerHit) score -= 2.5;
   else score += .8;
   if (result.reset) score += aiEnergy < playerEnergy ? 2.2 : -.8;
-  score += futureEnergy(aiEnergy, aiKey) * .28;
-  score -= futureEnergy(playerEnergy, playerKey) * .12;
+  score += projectedEnergy("ai", aiEnergy, aiKey, context) * .32;
+  score -= projectedEnergy("player", playerEnergy, playerKey, context) * .14;
   if (aiKey === "forge" && playerEnergy > 0) score -= .45;
   return score;
+}
+
+function projectedEnergy(who, energy, moveKey, context) {
+  const move = skillMove(moveKey);
+  if (!context.skillsEnabled) return futureEnergy(energy, moveKey);
+  const skill = who === "ai" ? context.aiSkill : context.playerSkill;
+  const fighter = who === "ai" ? context.aiFighter : context.playerFighter;
+  let value = Math.max(0, energy - moveCost(moveKey, skill, fighter) + (move.gain || 0));
+  if (skill === "generalist" && moveKey === "forge" && fighter.boostForge) value++;
+  if (skill === "guardian" && moveKey === "guard") value += .25;
+  if (skill === "guardian" && moveKey === "catch") value += .5;
+  return value;
+}
+
+function skillStrategyValue(aiKey, playerKey, damage, context) {
+  const skill = context.aiSkill;
+  let value = 0;
+  if (skill === "reaper" && damage.player > 0) value += 4;
+  if (skill === "secretKeeper" && damage.player > 0) value += 2.5;
+  if (skill === "generalist" && (damage.player > 0 || damage.ai > 0)) value += 1.2;
+  if (skill === "mother" && damage.player > 0) value += .7;
+  if (skill === "prisoner" && aiKey === "flash" && damage.ai === 0 && skillMove(playerKey).type === "attack") value += 2;
+  if (skill === "storm" && aiKey === "katana" && damage.player === 0) value += .7;
+  if (skill === "whiteTower" && skillMove(aiKey).type === "attack" && aiKey !== playerKey) value += moveCost(aiKey, skill, context.aiFighter) * .5;
+  if (skill === "hunter" && context.aiFighter.hp <= 1 && context.playerFighter.hp <= 1) value += 3;
+  if (skill === "tyrant" && context.aiFighter.hp <= 1 && damage.player > 0) value += 8;
+  if (skill === "bulwark" && aiKey === "bigShield" && context.aiFighter.hp <= 1) value += 2;
+  return value;
 }
 
 function weightedChoice(scored, temperature) {
@@ -541,7 +596,7 @@ let audioContext = null;
 const tutorial = [
   { icon: "👏 👏", title: "先拍两下", text: "现实游戏里，双方每回合先拍手两次，然后同时做出手势。网页会帮你模拟这个节奏。", demo: "啪 · 啪 · 出招！" },
   { icon: "✊", title: "锻造能量", text: "锻造能获得1格能量，但锻造时完全没有防御，任何攻击都会命中。", demo: "锻造：0 消耗 → +1 能量" },
-  { icon: "🔪 ⚔️ ✦", title: "等级压制", text: "攻击消耗几格能量，就是几级。同级互杀，高级攻击会压制低级攻击。", demo: "3级手里剑 ＞ 2级武士刀" },
+  { icon: "🔪 ⚔️ ✦", title: "等级压制", text: "攻击消耗几格能量，就是几级。同级攻击相互抵消，高级攻击会压制低级攻击。", demo: "同级抵刀 · 高级压制低级" },
   { icon: "🛡️ 🤲 💨", title: "三种防御", text: "防挡1～2级；接挡2～3级；闪消耗2能量，挡2～5级。接和闪成功后双方能量归零。", demo: "每种防御都有破绽" },
   { icon: "◉", title: "虚无终结", text: "攒满6格即可使用虚无。它无法被任何防御挡住，但攒能量的过程会让你很危险。", demo: "准备好了，开始第一局吧！" }
 ];
@@ -757,32 +812,18 @@ function applyStartOfRoundSkills() {
 }
 
 function applySkillDamage(result, playerKey, aiKey) {
-  let playerDamage = result.playerDamage ?? (result.playerHit ? state.ai.attack : 0);
-  let aiDamage = result.aiDamage ?? (result.aiHit ? state.player.attack : 0);
-
-  if (playerDamage > 0 && data.settings.aiSkill === "tyrant" && state.ai.hp <= 1) playerDamage = 10;
-  if (aiDamage > 0 && data.settings.playerSkill === "tyrant" && state.player.hp <= 1) aiDamage = 10;
-  if (aiDamage > 0 && data.settings.playerSkill === "assassin" && playerKey === "knife" && !state.player.assassinUsed) {
-    aiDamage += .5;
+  const damage = previewSkillDamage(
+    result, playerKey, aiKey, data.settings.playerSkill, data.settings.aiSkill, state.player, state.ai
+  );
+  if (damage.ai > 0 && data.settings.playerSkill === "assassin" && playerKey === "knife" && !state.player.assassinUsed) {
     state.player.assassinUsed = true;
   }
-  if (playerDamage > 0 && data.settings.aiSkill === "assassin" && aiKey === "knife" && !state.ai.assassinUsed) {
-    playerDamage += .5;
+  if (damage.player > 0 && data.settings.aiSkill === "assassin" && aiKey === "knife" && !state.ai.assassinUsed) {
     state.ai.assassinUsed = true;
   }
-
-  const playerMove = skillMove(playerKey);
-  const aiMove = skillMove(aiKey);
-  if (data.settings.playerSkill === "moon" && playerKey === "flash" && aiMove.type === "attack" && !result.playerHit) {
-    aiDamage += state.ai.attack;
-  }
-  if (data.settings.aiSkill === "moon" && aiKey === "flash" && playerMove.type === "attack" && !result.aiHit) {
-    playerDamage += state.player.attack;
-  }
-
-  state.player.hp -= playerDamage;
-  state.ai.hp -= aiDamage;
-  return { player: playerDamage, ai: aiDamage };
+  state.player.hp -= damage.player;
+  state.ai.hp -= damage.ai;
+  return damage;
 }
 
 function applyEndOfRoundSkills(damage, playerKey, aiKey) {

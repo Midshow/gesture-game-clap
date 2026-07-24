@@ -1,7 +1,7 @@
 import { MOVES, MAX_ENERGY } from "./moves.js";
 import { resolveCombat } from "./combat.js";
 import { chooseAiMove } from "./ai.js";
-import { SKILLS, SKILL_KEYS, createFighter, moveCost, resolveWithSkills, skillMove } from "./skills.js";
+import { SKILLS, SKILL_KEYS, createFighter, moveCost, previewSkillDamage, resolveWithSkills, skillMove } from "./skills.js";
 import { loadData, saveData } from "./storage.js";
 import { $, renderEnergy, renderMoves, renderRules, revealMove, showToast, showClap, updateHomeStats, setView } from "./ui.js";
 
@@ -13,7 +13,7 @@ let audioContext = null;
 const tutorial = [
   { icon: "👏 👏", title: "先拍两下", text: "现实游戏里，双方每回合先拍手两次，然后同时做出手势。网页会帮你模拟这个节奏。", demo: "啪 · 啪 · 出招！" },
   { icon: "✊", title: "锻造能量", text: "锻造能获得1格能量，但锻造时完全没有防御，任何攻击都会命中。", demo: "锻造：0 消耗 → +1 能量" },
-  { icon: "🔪 ⚔️ ✦", title: "等级压制", text: "攻击消耗几格能量，就是几级。同级互杀，高级攻击会压制低级攻击。", demo: "3级手里剑 ＞ 2级武士刀" },
+  { icon: "🔪 ⚔️ ✦", title: "等级压制", text: "攻击消耗几格能量，就是几级。同级攻击相互抵消，高级攻击会压制低级攻击。", demo: "同级抵刀 · 高级压制低级" },
   { icon: "🛡️ 🤲 💨", title: "三种防御", text: "防挡1～2级；接挡2～3级；闪消耗2能量，挡2～5级。接和闪成功后双方能量归零。", demo: "每种防御都有破绽" },
   { icon: "◉", title: "虚无终结", text: "攒满6格即可使用虚无。它无法被任何防御挡住，但攒能量的过程会让你很危险。", demo: "准备好了，开始第一局吧！" }
 ];
@@ -229,32 +229,18 @@ function applyStartOfRoundSkills() {
 }
 
 function applySkillDamage(result, playerKey, aiKey) {
-  let playerDamage = result.playerDamage ?? (result.playerHit ? state.ai.attack : 0);
-  let aiDamage = result.aiDamage ?? (result.aiHit ? state.player.attack : 0);
-
-  if (playerDamage > 0 && data.settings.aiSkill === "tyrant" && state.ai.hp <= 1) playerDamage = 10;
-  if (aiDamage > 0 && data.settings.playerSkill === "tyrant" && state.player.hp <= 1) aiDamage = 10;
-  if (aiDamage > 0 && data.settings.playerSkill === "assassin" && playerKey === "knife" && !state.player.assassinUsed) {
-    aiDamage += .5;
+  const damage = previewSkillDamage(
+    result, playerKey, aiKey, data.settings.playerSkill, data.settings.aiSkill, state.player, state.ai
+  );
+  if (damage.ai > 0 && data.settings.playerSkill === "assassin" && playerKey === "knife" && !state.player.assassinUsed) {
     state.player.assassinUsed = true;
   }
-  if (playerDamage > 0 && data.settings.aiSkill === "assassin" && aiKey === "knife" && !state.ai.assassinUsed) {
-    playerDamage += .5;
+  if (damage.player > 0 && data.settings.aiSkill === "assassin" && aiKey === "knife" && !state.ai.assassinUsed) {
     state.ai.assassinUsed = true;
   }
-
-  const playerMove = skillMove(playerKey);
-  const aiMove = skillMove(aiKey);
-  if (data.settings.playerSkill === "moon" && playerKey === "flash" && aiMove.type === "attack" && !result.playerHit) {
-    aiDamage += state.ai.attack;
-  }
-  if (data.settings.aiSkill === "moon" && aiKey === "flash" && playerMove.type === "attack" && !result.aiHit) {
-    playerDamage += state.player.attack;
-  }
-
-  state.player.hp -= playerDamage;
-  state.ai.hp -= aiDamage;
-  return { player: playerDamage, ai: aiDamage };
+  state.player.hp -= damage.player;
+  state.ai.hp -= damage.ai;
+  return damage;
 }
 
 function applyEndOfRoundSkills(damage, playerKey, aiKey) {

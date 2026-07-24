@@ -9,8 +9,8 @@ assert.equal(resolveCombat("katana", "catch").reset, true, "接住武士刀后�
 assert.equal(resolveCombat("knife", "catch").aiHit, true, "接不应挡住小刀");
 assert.equal(resolveCombat("dragonFang", "flash").reset, true, "闪应挡住龙牙");
 assert.equal(resolveCombat("void", "flash").aiHit, true, "闪不应挡住虚无");
-assert.equal(resolveCombat("katana", "katana").playerHit, true, "同级应互杀");
-assert.equal(resolveCombat("katana", "katana").aiHit, true, "同级应互杀");
+assert.equal(resolveCombat("katana", "katana").playerHit, false, "同级抵刀时玩家不应受伤");
+assert.equal(resolveCombat("katana", "katana").aiHit, false, "同级抵刀时AI不应受伤");
 assert.equal(resolveCombat("shuriken", "knife").aiHit, true, "高级应压制低级");
 
 for (const player of MOVE_KEYS) {
