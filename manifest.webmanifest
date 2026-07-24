@@ -1,0 +1,13 @@
+{
+  "name": "合掌 · 拍两下，见真招",
+  "short_name": "合掌",
+  "description": "一分钟学会，随时和 AI 练习的拍手对战游戏。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f3eddf",
+  "theme_color": "#12100f",
+  "categories": ["games", "education"]
+}
