@@ -72,7 +72,7 @@ function render() {
   $("playerScore").textContent = state.player.score;
   $("aiScore").textContent = state.ai.score;
   $("roundNumber").textContent = state.round;
-  const names = { easy: "简单", normal: "普通", hard: "困难", mindreader: "读心挑战" };
+  const names = { easy: "简单", normal: "普通", hard: "困难", hell: "地狱" };
   const modeNames = { standard: "标准", endless: "无尽", zen: "禅" };
   $("modeLabel").textContent = `${modeNames[data.settings.mode]}对决 · ${names[data.settings.difficulty]}`;
   const continuous = data.settings.mode !== "standard";

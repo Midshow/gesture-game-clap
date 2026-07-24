@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12100f">
+  <meta name="description" content="合掌：一分钟学会，随时和 AI 练习的拍手对战游戏。">
+  <meta property="og:title" content="合掌 · 拍两下，见真招">
+  <meta property="og:description" content="离线可玩的合掌教学与 AI 练习游戏。">
+
+  <title>合掌 · 拍两下，见真招</title>
+  <style>
+:root{--ink:#171412;--paper:#f3eddf;--paper-2:#e7dcc7;--red:#d73e2d;--red-dark:#8e211b;--gold:#d49b32;--muted:#746b60;--line:#cfc2aa;--white:#fffdf7;--shadow:0 20px 60px rgba(43,28,16,.15)}
+*{box-sizing:border-box}html{background:var(--paper);scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 12% 0,rgba(215,62,45,.11),transparent 24rem),linear-gradient(100deg,transparent 49.8%,rgba(83,60,38,.025) 50%,transparent 50.2%),var(--paper);min-height:100vh}
+button,select,input{font:inherit}button{color:inherit}.topbar{height:76px;padding:0 max(24px,calc((100vw - 1180px)/2));display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(112,91,65,.2);position:sticky;top:0;background:rgba(243,237,223,.9);backdrop-filter:blur(14px);z-index:20}
+.brand{border:0;background:none;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left}.brand-mark{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--red);color:white;font-family:serif;font-size:23px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.2)}.brand strong{display:block;letter-spacing:.18em}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:.08em}.top-actions{display:flex;gap:8px;align-items:center}.quick-mode{border:1px solid var(--line);background:rgba(255,255,255,.35);border-radius:999px;padding:8px 25px 8px 11px;font-size:11px;color:var(--ink)}.quiet-button,.text-button,.icon-button{border:0;background:transparent;cursor:pointer}.quiet-button{padding:9px 13px;border:1px solid transparent;border-radius:999px}.quiet-button:hover{border-color:var(--line);background:rgba(255,255,255,.35)}
+main{width:min(1180px,calc(100% - 40px));margin:auto}.view{display:none}.view.active{display:block}.home-view{padding:clamp(54px,8vw,110px) 0 70px}.hero{max-width:780px}.eyebrow{margin:0 0 13px;text-transform:uppercase;color:var(--red);font-weight:800;font-size:11px;letter-spacing:.2em}.hero h1{font-family:"STKaiti","KaiTi",serif;font-size:clamp(62px,11vw,136px);line-height:.84;margin:0;letter-spacing:-.08em;font-weight:900}.hero h1 em{font-style:normal;color:var(--red)}.hero-copy{font-size:clamp(17px,2vw,22px);line-height:1.75;color:#51483f;max-width:650px;margin:30px 0}.hero-actions,.game-over-actions{display:flex;gap:12px;flex-wrap:wrap}.primary-button,.secondary-button{border-radius:4px;padding:14px 22px;border:1px solid var(--ink);font-weight:800;cursor:pointer}.primary-button{background:var(--ink);color:var(--white);box-shadow:5px 5px 0 var(--red)}.primary-button:hover{transform:translate(-1px,-1px);box-shadow:7px 7px 0 var(--red)}.secondary-button{background:transparent}.secondary-button:hover{background:rgba(255,255,255,.45)}
+.quick-rules{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:clamp(70px,10vw,130px)}.quick-rules article{background:rgba(255,253,247,.55);padding:28px;min-height:170px}.quick-rules article>span{font-family:serif;color:var(--red);font-size:13px}.quick-rules strong{display:block;font:700 27px "STKaiti","KaiTi",serif;margin:24px 0 9px}.quick-rules p{color:var(--muted);line-height:1.65;margin:0}.home-stats{display:flex;justify-content:flex-end;gap:46px;padding:34px 4px}.home-stats div{display:flex;flex-direction:column;text-align:right}.home-stats strong{font:700 26px Georgia,serif}.home-stats span{font-size:11px;color:var(--muted);margin-top:5px}
+.game-view{padding:38px 0 80px}.game-toolbar,.dock-heading{display:flex;align-items:flex-end;justify-content:space-between}.game-toolbar h2,.dock-heading h3{margin:0;font:800 32px "STKaiti","KaiTi",serif}.score{display:flex;align-items:center;gap:16px}.score span{display:grid;grid-template-columns:auto auto;gap:8px;align-items:end}.score small{color:var(--muted);font-size:11px}.score strong{font:700 34px Georgia,serif}.score i{font-style:normal;color:var(--line);font-size:25px}.endless-score{display:flex;gap:18px}.endless-score span{display:flex;flex-direction:column;align-items:flex-end}.endless-score small{color:var(--muted);font-size:9px}.endless-score strong{font:700 22px Georgia,serif}.hidden{display:none!important}.duel-board{display:grid;grid-template-columns:1fr .78fr 1fr;gap:14px;margin:30px 0}.fighter,.clash,.move-dock,.battle-log{border:1px solid var(--line);background:rgba(255,253,247,.62)}.fighter{padding:22px;min-height:242px;display:flex;flex-direction:column}.fighter.ai{border-top:4px solid var(--red)}.fighter.player{border-top:4px solid #324f67}.fighter-head{display:flex;align-items:center;gap:12px}.avatar{width:48px;height:48px;border-radius:50%;background:var(--ink);color:var(--white);display:grid;place-items:center;font:800 18px serif}.player .avatar{background:#324f67}.fighter-head small,.fighter-head strong{display:block}.fighter-head small{font-size:10px;color:var(--muted);margin-bottom:4px}.energy-row{display:grid;grid-template-columns:auto 1fr 22px;gap:9px;align-items:center;margin-top:25px;font-size:11px;color:var(--muted)}.energy-track{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.energy-cell{height:8px;background:var(--paper-2)}.energy-cell.filled{background:var(--gold)}.energy-hidden .energy-row{visibility:hidden}.zen-mode .fighter{background:rgba(255,253,247,.3)}.zen-mode .score,.zen-mode .endless-score{filter:grayscale(.4)}.revealed-move{margin-top:auto;padding-top:25px;display:flex;align-items:center;gap:12px}.revealed-move.hidden{visibility:hidden}.revealed-move span{font-size:38px}.revealed-move strong{font-family:"STKaiti","KaiTi",serif;font-size:24px}.clash{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px}.clash p{color:var(--red);font-size:11px;font-weight:800;letter-spacing:.14em}.clash strong{font:800 26px "STKaiti","KaiTi",serif;margin:6px 0}.clash>span{color:var(--muted);font-size:12px;line-height:1.55}.clash.win{background:#edf1e5}.clash.lose{background:#f4ded7}.clash.draw{background:#eee6d6}.timer-track{width:100%;height:3px;background:var(--paper-2);margin-top:22px}.timer-track.hidden{display:none}.timer-track i{height:100%;width:100%;display:block;background:var(--red);transition:width .1s linear}
+.move-dock{padding:20px;margin-top:16px;box-shadow:var(--shadow)}.text-button{color:var(--red);font-size:12px;font-weight:700}.move-legend{display:flex;gap:18px;margin:15px 0 11px;color:var(--muted);font-size:10px}.move-legend span{display:flex;align-items:center;gap:6px}.move-legend i{width:7px;height:7px;border-radius:50%}.basic-dot{background:#526a73}.attack-dot{background:var(--red)}.move-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:7px}.move-card{position:relative;min-height:86px;padding:10px 7px 8px;border:1px solid var(--line);border-top:3px solid #526a73;background:var(--white);cursor:pointer;text-align:center;transition:.15s}.move-card.attack{border-top-color:var(--red)}.move-card:hover:not(:disabled){border-color:var(--red);transform:translateY(-2px)}.move-card:disabled{opacity:.4;cursor:not-allowed}.move-card .move-icon{font-size:21px;display:block;line-height:1}.move-card strong{display:block;margin:8px 0 3px;font-size:12px}.move-card small{display:block;font-size:9px;color:var(--muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.move-cost{position:absolute;right:4px;top:4px;border-radius:50%;background:var(--paper-2);width:19px;height:19px;display:grid;place-items:center;font:700 9px Georgia,serif}.dock-hint{margin:10px 0 0;color:var(--muted);font-size:10px}.battle-log{margin-top:14px;padding:0 22px}.battle-log summary{padding:18px 0;cursor:pointer;font-weight:800;font-size:12px}.battle-log summary span{background:var(--red);color:white;border-radius:99px;padding:2px 7px;margin-left:5px}.battle-log ol{padding:0 0 17px 22px;color:var(--muted);font-size:12px}.battle-log li{padding:7px;border-bottom:1px solid var(--paper-2)}.battle-log b{color:var(--ink)}
+dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(--line);background:var(--paper);padding:26px;box-shadow:var(--shadow);color:var(--ink)}dialog::backdrop{background:rgba(23,20,18,.7);backdrop-filter:blur(4px)}.dialog-head{display:flex;justify-content:space-between;align-items:flex-start}.dialog-head h2{margin:0;font:800 38px "STKaiti","KaiTi",serif}.icon-button{font-size:30px;line-height:1}.rule-summary{display:flex;justify-content:space-between;gap:16px;background:var(--ink);color:white;padding:17px;margin:22px 0}.rule-summary span{color:#cfc5b7}.rule-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.rule-card{border:1px solid var(--line);padding:16px;display:grid;grid-template-columns:40px 1fr;gap:10px}.rule-card>span{font-size:27px}.rule-card strong{display:block}.rule-card small{display:block;color:var(--muted);line-height:1.45;margin-top:5px}.settings-form{display:grid;gap:16px;margin-top:25px}.settings-form>label{display:grid;grid-template-columns:1fr 1fr;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px;font-weight:700}.settings-form select,.settings-form input[type=number]{padding:10px;border:1px solid var(--line);background:var(--white)}.switch-row span small{display:block;color:var(--muted);font-weight:400;margin-top:4px}.switch-row input{justify-self:end;width:20px;height:20px}.settings-form .primary-button{margin-top:8px}.tutorial-dialog{width:min(600px,calc(100% - 28px));min-height:470px}.tutorial-close{float:right}.tutorial-step{padding:45px 15px 20px;text-align:center}.tutorial-icon{font-size:76px}.tutorial-step h2{font:800 40px "STKaiti","KaiTi",serif;margin:20px 0 12px}.tutorial-step p{color:var(--muted);line-height:1.7;max-width:440px;margin:auto}.tutorial-demo{margin:24px auto 0;padding:15px;background:var(--paper-2);font-weight:800}.tutorial-footer{display:flex;align-items:center;justify-content:space-between;margin-top:30px}.tutorial-dots{display:flex;gap:6px}.tutorial-dots i{width:7px;height:7px;background:var(--line);border-radius:50%}.tutorial-dots i.active{background:var(--red);width:20px;border-radius:9px}.game-over-dialog{text-align:center;width:min(520px,calc(100% - 28px))}.result-seal{width:92px;height:92px;margin:10px auto 18px;border:5px double var(--red);color:var(--red);border-radius:50%;display:grid;place-items:center;font:900 47px "STKaiti","KaiTi",serif;transform:rotate(-7deg)}.game-over-dialog h2{font:900 46px "STKaiti","KaiTi",serif;margin:0}.game-over-dialog p:not(.eyebrow){color:var(--muted)}.game-over-actions{justify-content:center;margin-top:25px}.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:white;padding:10px 16px;border-radius:3px;z-index:50;transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,0)}.clap-overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(23,20,18,.72);z-index:40;opacity:0;pointer-events:none}.clap-overlay.show{animation:clap .18s ease}.clap-overlay span{font:900 clamp(70px,15vw,150px) "STKaiti","KaiTi",serif;color:white}@keyframes clap{0%{opacity:0;transform:scale(.9)}40%{opacity:1;transform:scale(1)}100%{opacity:0}}
+@media(max-width:980px){.move-grid{grid-template-columns:repeat(5,1fr)}}@media(max-width:800px){main{width:min(100% - 24px,1180px)}.topbar{height:65px;padding:0 14px}.brand small{display:none}.home-view{padding-top:50px}.quick-rules{grid-template-columns:1fr}.quick-rules article{min-height:unset}.home-stats{justify-content:space-between;gap:8px}.duel-board{grid-template-columns:1fr 1fr}.clash{grid-column:1/-1;grid-row:2;min-height:170px}.fighter{min-height:200px;padding:16px}.rule-grid{grid-template-columns:1fr}.rule-summary{flex-direction:column}.settings-form>label{grid-template-columns:1fr;gap:9px}.switch-row{grid-template-columns:1fr auto!important}.move-dock{padding:15px}.game-toolbar{align-items:center}}@media(max-width:480px){.hero h1{font-size:64px}.hero-actions>*{width:100%}.quick-rules{margin-top:55px}.fighter-head .avatar{width:38px;height:38px}.fighter-head strong{font-size:13px}.energy-row{grid-template-columns:1fr 20px}.energy-row>span{display:none}.revealed-move span{font-size:29px}.revealed-move strong{font-size:18px}.score{gap:8px}.score strong{font-size:25px}.move-grid{grid-template-columns:repeat(5,1fr);gap:5px}.move-card{min-height:72px;padding:8px 3px 5px}.move-card .move-icon{font-size:18px}.move-card strong{font-size:11px;margin:6px 0 2px}.move-card small{font-size:8px}.move-cost{width:17px;height:17px;font-size:8px}.game-over-actions>*{width:100%}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" id="homeButton" aria-label="返回首页">
+      <span class="brand-mark">合</span>
+      <span><strong>合掌</strong><small>拍两下，见真招</small></span>
+    </button>
+    <nav class="top-actions" aria-label="快捷操作">
+      <select class="quick-mode" id="quickModeSelect" aria-label="游戏模式">
+        <option value="standard">标准</option>
+        <option value="endless">无尽</option>
+        <option value="zen">禅</option>
+      </select>
+      <button class="quiet-button" id="rulesButton">规则</button>
+      <button class="quiet-button" id="settingsButton">设置</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="view home-view active" id="homeView" aria-labelledby="heroTitle">
+      <div class="hero">
+        <p class="eyebrow">无需安装 · 离线可玩 · 一分钟上手</p>
+        <h1 id="heroTitle">拍两下，<br><em>见真招。</em></h1>
+        <p class="hero-copy">锻造攒能量，攻防猜心思。先跟 AI 练几局，再去找同学面对面对决。</p>
+        <div class="hero-actions">
+          <button class="primary-button" data-action="start-game">开始练习 <span>→</span></button>
+          <button class="secondary-button" data-action="start-tutorial">一分钟教学</button>
+        </div>
+      </div>
+
+      <div class="quick-rules" aria-label="核心规则">
+        <article><span>01</span><strong>锻造</strong><p>获得 1 格能量，但此时没有防御。</p></article>
+        <article><span>02</span><strong>出招</strong><p>消耗 N 格能量，就是 N 级攻击。</p></article>
+        <article><span>03</span><strong>博弈</strong><p>高级压低级；防、接、闪各有所长。</p></article>
+      </div>
+
+      <div class="home-stats">
+        <div><strong id="homeGames">0</strong><span>累计练习</span></div>
+        <div><strong id="homeBest">0</strong><span>最高连胜</span></div>
+        <div><strong id="homeWinRate">—</strong><span>练习胜率</span></div>
+      </div>
+    </section>
+
+    <section class="view game-view" id="gameView" aria-labelledby="gameHeading">
+      <div class="game-toolbar">
+        <div>
+          <p class="eyebrow" id="modeLabel">AI 练习 · 普通</p>
+          <h2 id="gameHeading">第 <span id="roundNumber">1</span> 回合</h2>
+        </div>
+        <div class="score" id="standardScore" aria-label="比分">
+          <span><small>你</small><strong id="playerScore">0</strong></span>
+          <i>:</i>
+          <span><small>AI</small><strong id="aiScore">0</strong></span>
+        </div>
+        <div class="endless-score hidden" id="endlessScore" aria-label="无尽模式统计">
+          <span><small>胜</small><strong id="endlessWins">0</strong></span>
+          <span><small>负</small><strong id="endlessLosses">0</strong></span>
+          <span><small>连胜</small><strong id="endlessStreak">0</strong></span>
+          <span><small>最高</small><strong id="endlessBest">0</strong></span>
+        </div>
+      </div>
+
+      <div class="duel-board">
+        <article class="fighter ai" id="aiPanel">
+          <div class="fighter-head"><span class="avatar">忍</span><div><small>对手</small><strong>AI 忍者</strong></div></div>
+          <div class="energy-row"><span>能量</span><div class="energy-track" id="aiEnergy"></div><b id="aiEnergyCount">0</b></div>
+          <div class="revealed-move hidden" id="aiMove"><span>？</span><strong>等待出招</strong></div>
+        </article>
+
+        <div class="clash" id="clash">
+          <p id="clashKicker">准备好了吗？</p>
+          <strong id="clashTitle">选择你的招式</strong>
+          <span id="clashDetail">每回合会先拍手两次，再同时揭晓。</span>
+          <div class="timer-track hidden" id="timerTrack"><i id="timerBar"></i></div>
+        </div>
+
+        <article class="fighter player" id="playerPanel">
+          <div class="fighter-head"><span class="avatar">你</span><div><small>挑战者</small><strong>你</strong></div></div>
+          <div class="energy-row"><span>能量</span><div class="energy-track" id="playerEnergy"></div><b id="playerEnergyCount">0</b></div>
+          <div class="revealed-move hidden" id="playerMove"><span>？</span><strong>等待出招</strong></div>
+        </article>
+      </div>
+
+      <section class="move-dock" aria-labelledby="moveTitle">
+        <div class="dock-heading">
+          <div><p class="eyebrow">你的回合</p><h3 id="moveTitle">选择招式</h3></div>
+          <button class="text-button" id="restartButton">重新开始</button>
+        </div>
+        <div class="move-legend" aria-hidden="true">
+          <span><i class="basic-dot"></i>蓄力 / 防御</span>
+          <span><i class="attack-dot"></i>攻击</span>
+        </div>
+        <div class="move-grid" id="moveGrid"></div>
+        <p class="dock-hint" id="dockHint">能量不足的招式会自动锁定。</p>
+      </section>
+
+      <details class="battle-log">
+        <summary>战斗记录 <span id="logCount">0</span></summary>
+        <ol id="logList"></ol>
+      </details>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="clap-overlay" id="clapOverlay" aria-hidden="true"><span>啪！</span></div>
+
+  <dialog id="rulesDialog">
+    <div class="dialog-head"><div><p class="eyebrow">随时查阅</p><h2>规则图鉴</h2></div><button class="icon-button" data-close="rulesDialog" aria-label="关闭">×</button></div>
+    <div class="rule-summary"><b>攻击等级 = 消耗能量数</b><span>同级互杀，高级压制低级。</span></div>
+    <div class="rule-grid" id="ruleGrid"></div>
+  </dialog>
+
+  <dialog id="settingsDialog">
+    <div class="dialog-head"><div><p class="eyebrow">本机保存</p><h2>练习设置</h2></div><button class="icon-button" data-close="settingsDialog" aria-label="关闭">×</button></div>
+    <form class="settings-form" method="dialog">
+      <label>游戏模式<select id="modeSelect"><option value="standard">标准 · 达到目标胜场结束</option><option value="endless">无尽 · 持续记录连胜</option><option value="zen">禅 · 隐藏能量的无尽对决</option></select></label>
+      <label>AI 难度<select id="difficultySelect"><option value="easy">简单 · 会看双方能量</option><option value="normal">普通 · 会判断攻防风险</option><option value="hard">困难 · 会学习出招习惯</option><option value="hell">地狱 · 高强度策略计算</option></select></label>
+      <label id="winScoreSetting">目标胜场<select id="winScoreSelect"><option value="1">一局定胜负</option><option value="3">先得 3 分</option><option value="5">先得 5 分</option><option value="7">先得 7 分</option></select></label>
+      <label class="switch-row"><span>回合计时<small>超时自动选择“防”</small></span><input id="timerToggle" type="checkbox"></label>
+      <label>计时秒数<input id="timerSeconds" type="number" min="0" max="15" step="any"></label>
+      <label class="switch-row" id="energySetting"><span>显示能量<small>禅模式会强制隐藏</small></span><input id="energyToggle" type="checkbox"></label>
+      <label class="switch-row"><span>音效<small>拍手和命中反馈</small></span><input id="soundToggle" type="checkbox"></label>
+      <button class="primary-button" value="confirm">保存并重新开始</button>
+    </form>
+  </dialog>
+
+  <dialog id="tutorialDialog" class="tutorial-dialog">
+    <button class="icon-button tutorial-close" data-close="tutorialDialog" aria-label="关闭">×</button>
+    <div class="tutorial-step" id="tutorialStep"></div>
+    <div class="tutorial-footer"><div class="tutorial-dots" id="tutorialDots"></div><button class="primary-button" id="tutorialNext">下一步</button></div>
+  </dialog>
+
+  <dialog id="gameOverDialog" class="game-over-dialog">
+    <p class="eyebrow">本局结束</p><div class="result-seal" id="resultSeal">胜</div>
+    <h2 id="gameOverTitle">漂亮！</h2><p id="gameOverText"></p>
+    <div class="game-over-actions"><button class="primary-button" id="playAgainButton">再来一局</button><button class="secondary-button" id="backHomeButton">返回首页</button></div>
+  </dialog>
+  <script>
+
+/* js/moves.js */
+const MAX_ENERGY = 6;
+
+const MOVES = {
+  forge: { name: "锻造", type: "basic", icon: "✊", cost: 0, gain: 1, summary: "+1 能量 · 无防御", rule: "获得1格能量；锻造时被任意攻击命中。" },
+  guard: { name: "防", type: "basic", icon: "🛡️", cost: 0, blocks: [1, 2], summary: "挡 1～2 级 · 免费", rule: "挡住小刀和武士刀；挡不住3级以上攻击。" },
+  catch: { name: "接", type: "basic", icon: "🤲", cost: 0, blocks: [2, 3], resets: true, summary: "挡 2～3 级 · 重置", rule: "接住武士刀或手里剑后，双方能量归零。" },
+  flash: { name: "闪", type: "basic", icon: "💨", cost: 2, blocks: [2, 3, 4, 5], resets: true, summary: "挡 2～5 级 · 2 能量", rule: "躲开2～5级攻击并重置能量；挡不了小刀和虚无。" },
+  knife: { name: "小刀", type: "attack", icon: "🔪", cost: 1, level: 1, summary: "1 级攻击", rule: "最低消耗的攻击，可击中锻造、接和闪。" },
+  katana: { name: "武士刀", type: "attack", icon: "⚔️", cost: 2, level: 2, summary: "2 级攻击", rule: "强于小刀，但会被防、接和闪挡住。" },
+  shuriken: { name: "手里剑", type: "attack", icon: "✦", cost: 3, level: 3, summary: "3 级攻击", rule: "能够突破防，但会被接或闪挡住。" },
+  kunai: { name: "苦无", type: "attack", icon: "🗡️", cost: 4, level: 4, summary: "4 级攻击", rule: "只有闪能防住；高级攻击会压制低级攻击。" },
+  dragonFang: { name: "龙牙", type: "attack", icon: "🐉", cost: 5, level: 5, summary: "5 级攻击", rule: "只有闪能防住，威力仅次于虚无。" },
+  void: { name: "虚无", type: "attack", icon: "◉", cost: 6, level: 6, summary: "6 级 · 不可防御", rule: "终极攻击，任何防御都无法抵挡。" }
+};
+
+const MOVE_KEYS = Object.keys(MOVES);
+const ATTACK_KEYS = MOVE_KEYS.filter(key => MOVES[key].type === "attack");
+
+function canAfford(moveKey, energy) {
+  return MOVES[moveKey].cost <= energy;
+}
+
+
+/* js/combat.js */
+
+function outcome(playerHit = false, aiHit = false, reset = false, title = "", detail = "") {
+  return { playerHit, aiHit, reset, title, detail };
+}
+
+function resolveCombat(playerKey, aiKey) {
+  const player = MOVES[playerKey];
+  const ai = MOVES[aiKey];
+  if (!player || !ai) throw new Error("未知招式");
+
+  if (player.type === "basic" && ai.type === "basic") {
+    if (playerKey === "forge" && aiKey === "forge") return outcome(false, false, false, "双方锻造", "各获得1格能量。");
+    return outcome(false, false, false, "相互试探", "没有人被击中。");
+  }
+  if (playerKey === "forge" && ai.type === "attack") return outcome(true, false, false, `${ai.name}命中`, "锻造时没有防御。");
+  if (aiKey === "forge" && player.type === "attack") return outcome(false, true, false, `${player.name}命中`, "锻造时没有防御。");
+  if (player.type === "attack" && ai.type === "attack") {
+    if (player.level === ai.level) return outcome(true, true, false, "同级互杀", `${player.level}级对${ai.level}级，双方同时命中。`);
+    return player.level > ai.level
+      ? outcome(false, true, false, `${player.name}压制${ai.name}`, "高级攻击压制低级攻击。")
+      : outcome(true, false, false, `${ai.name}压制${player.name}`, "高级攻击压制低级攻击。");
+  }
+  if (player.type === "attack") return attackVsDefense(playerKey, aiKey, false);
+  if (ai.type === "attack") return attackVsDefense(aiKey, playerKey, true);
+  return outcome(false, false, false, "相互试探", "没有人被击中。");
+}
+
+function attackVsDefense(attackKey, defenseKey, defenderIsPlayer) {
+  const attack = MOVES[attackKey];
+  const defense = MOVES[defenseKey];
+  const blocked = Array.isArray(defense.blocks) && defense.blocks.includes(attack.level);
+  if (blocked) {
+    return outcome(false, false, Boolean(defense.resets), `${defense.name}成功`, `${defense.name}挡住了${attack.level}级${attack.name}${defense.resets ? "，双方能量归零" : ""}。`);
+  }
+  return defenderIsPlayer
+    ? outcome(true, false, false, `${attack.name}突破${defense.name}`, `${defense.name}无法防御${attack.level}级攻击。`)
+    : outcome(false, true, false, `${attack.name}突破${defense.name}`, `${defense.name}无法防御${attack.level}级攻击。`);
+}
+
+
+/* js/ai.js */
+
+
+const legalMoves = energy => Object.keys(MOVES).filter(key => canAfford(key, energy));
+
+const LEVELS = {
+  easy:   { history: .20, noise: 1.8, explore: .18 },
+  normal: { history: .55, noise: .8, explore: .08 },
+  hard:   { history: .85, noise: .3, explore: .03 },
+  hell:   { history: 1.15, noise: .08, explore: 0 }
+};
+
+function playerMoveWeights(playerEnergy, history, historyStrength) {
+  const candidates = legalMoves(playerEnergy);
+  const recent = history.slice(-14);
+  const counts = Object.fromEntries(candidates.map(key => [key, 0]));
+  recent.forEach(key => {
+    if (key in counts) counts[key]++;
+  });
+
+  return candidates.map(key => {
+    const move = MOVES[key];
+    let weight = 1;
+    if (key === "forge") weight += playerEnergy <= 1 ? 2.4 : playerEnergy >= 5 ? -.45 : .55;
+    if (move.type === "attack") {
+      weight += playerEnergy >= move.cost ? .35 : 0;
+      if (move.cost === playerEnergy) weight += .25;
+    }
+    if (key === "guard") weight += playerEnergy <= 1 ? .7 : .15;
+    if (key === "catch" && playerEnergy >= 2) weight += .2;
+    if (key === "flash" && playerEnergy >= 4) weight += .35;
+    if (recent.length) weight += (counts[key] / recent.length) * 5 * historyStrength;
+    return { key, weight: Math.max(.08, weight) };
+  });
+}
+
+function futureEnergy(energy, moveKey) {
+  const move = MOVES[moveKey];
+  return Math.max(0, energy - move.cost + (move.gain || 0));
+}
+
+function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy) {
+  const result = resolveCombat(playerKey, aiKey);
+  let score = 0;
+  if (result.playerHit && !result.aiHit) score += 12;
+  else if (result.aiHit && !result.playerHit) score -= 14;
+  else if (result.aiHit && result.playerHit) score -= 2.5;
+  else score += .8;
+  if (result.reset) score += aiEnergy < playerEnergy ? 2.2 : -.8;
+  score += futureEnergy(aiEnergy, aiKey) * .28;
+  score -= futureEnergy(playerEnergy, playerKey) * .12;
+  if (aiKey === "forge" && playerEnergy > 0) score -= .45;
+  return score;
+}
+
+function weightedChoice(scored, temperature) {
+  const max = Math.max(...scored.map(item => item.score));
+  const weighted = scored.map(item => ({ ...item, weight: Math.exp((item.score - max) / temperature) }));
+  let roll = Math.random() * weighted.reduce((sum, item) => sum + item.weight, 0);
+  for (const item of weighted) {
+    roll -= item.weight;
+    if (roll <= 0) return item.key;
+  }
+  return weighted[weighted.length - 1].key;
+}
+
+function chooseAiMove(difficulty, context) {
+  const level = LEVELS[difficulty] || LEVELS.normal;
+  const aiMoves = legalMoves(context.aiEnergy);
+  const playerWeights = playerMoveWeights(context.playerEnergy, context.history, level.history);
+  const totalWeight = playerWeights.reduce((sum, item) => sum + item.weight, 0);
+
+  const scored = aiMoves.map(aiKey => {
+    const expected = playerWeights.reduce(
+      (sum, player) => sum + scoreMatchup(player.key, aiKey, context.aiEnergy, context.playerEnergy) * player.weight,
+      0
+    ) / totalWeight;
+    return { key: aiKey, score: expected + (Math.random() - .5) * level.noise };
+  }).sort((a, b) => b.score - a.score);
+
+  if (level.explore && Math.random() < level.explore) {
+    return weightedChoice(scored, 2.5);
+  }
+  return weightedChoice(scored.slice(0, difficulty === "hell" ? 2 : 4), difficulty === "hell" ? .16 : .65);
+}
+
+
+/* js/storage.js */
+const KEY = "hezhang-game-v2";
+const defaults = {
+  settings: { mode: "standard", difficulty: "normal", winScore: 3, timerEnabled: false, timerSeconds: 15, energyVisible: true, sound: true },
+  stats: { games: 0, wins: 0, losses: 0, bestStreak: 0, currentStreak: 0 },
+  tutorialSeen: false
+};
+
+function loadData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+    const merged = { ...defaults, ...saved, settings: { ...defaults.settings, ...saved.settings }, stats: { ...defaults.stats, ...saved.stats } };
+    if (merged.settings.difficulty === "mindreader") merged.settings.difficulty = "hell";
+    return merged;
+  } catch {
+    return structuredClone(defaults);
+  }
+}
+
+function saveData(data) {
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+
+
+/* js/ui.js */
+
+const $ = id => document.getElementById(id);
+
+function renderEnergy(id, countId, energy) {
+  $(id).innerHTML = Array.from({ length: MAX_ENERGY }, (_, index) => `<i class="energy-cell ${index < energy ? "filled" : ""}"></i>`).join("");
+  $(countId).textContent = energy;
+}
+
+function renderMoves(energy, onSelect, busy = false) {
+  const keys = Object.keys(MOVES);
+  const grid = $("moveGrid");
+  grid.innerHTML = keys.map(key => {
+    const move = MOVES[key];
+    const shortfall = Math.max(0, move.cost - energy);
+    return `<button class="move-card ${move.type}" data-move="${key}" ${busy || shortfall ? "disabled" : ""} aria-label="${move.name}，${move.summary}">
+      <span class="move-icon">${move.icon}</span><strong>${move.name}</strong><small>${shortfall ? `还差 ${shortfall} 格能量` : move.summary}</small>
+      <span class="move-cost">${move.cost || (move.gain ? "+1" : "0")}</span>
+    </button>`;
+  }).join("");
+  grid.querySelectorAll("[data-move]").forEach(button => button.addEventListener("click", () => onSelect(button.dataset.move)));
+}
+
+function renderRules() {
+  $("ruleGrid").innerHTML = Object.values(MOVES).map(move => `<article class="rule-card"><span>${move.icon}</span><div><strong>${move.name} · ${move.cost ? `${move.cost} 能量` : "免费"}</strong><small>${move.rule}</small></div></article>`).join("");
+}
+
+function revealMove(who, moveKey, hidden = false) {
+  const element = $(`${who}Move`);
+  const move = MOVES[moveKey];
+  element.classList.toggle("hidden", hidden);
+  if (move) element.innerHTML = `<span>${move.icon}</span><strong>${move.name}</strong>`;
+}
+
+function showToast(message) {
+  const toast = $("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timeout);
+  showToast.timeout = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+function showClap() {
+  const overlay = $("clapOverlay");
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+}
+
+function updateHomeStats(stats) {
+  $("homeGames").textContent = stats.games;
+  $("homeBest").textContent = stats.bestStreak;
+  $("homeWinRate").textContent = stats.games ? `${Math.round(stats.wins / stats.games * 100)}%` : "—";
+}
+
+function setView(name) {
+  document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
+  $(`${name}View`).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+/* js/app.js */
+
+
+
+
+
+let data = loadData();
+let state;
+let timerId = null;
+let audioContext = null;
+
+const tutorial = [
+  { icon: "👏 👏", title: "先拍两下", text: "现实游戏里，双方每回合先拍手两次，然后同时做出手势。网页会帮你模拟这个节奏。", demo: "啪 · 啪 · 出招！" },
+  { icon: "✊", title: "锻造能量", text: "锻造能获得1格能量，但锻造时完全没有防御，任何攻击都会命中。", demo: "锻造：0 消耗 → +1 能量" },
+  { icon: "🔪 ⚔️ ✦", title: "等级压制", text: "攻击消耗几格能量，就是几级。同级互杀，高级攻击会压制低级攻击。", demo: "3级手里剑 ＞ 2级武士刀" },
+  { icon: "🛡️ 🤲 💨", title: "三种防御", text: "防挡1～2级；接挡2～3级；闪消耗2能量，挡2～5级。接和闪成功后双方能量归零。", demo: "每种防御都有破绽" },
+  { icon: "◉", title: "虚无终结", text: "攒满6格即可使用虚无。它无法被任何防御挡住，但攒能量的过程会让你很危险。", demo: "准备好了，开始第一局吧！" }
+];
+let tutorialIndex = 0;
+
+function newState() {
+  return {
+    player: { energy: 0, score: 0 },
+    ai: { energy: 0, score: 0 },
+    endless: { wins: 0, losses: 0, streak: 0, best: 0 },
+    round: 1, busy: false, history: [], log: []
+  };
+}
+
+function init() {
+  state = newState();
+  renderRules();
+  bindEvents();
+  syncSettingsForm();
+  updateHomeStats(data.stats);
+  render();
+  /* The self-contained build does not need a Service Worker. */
+}
+
+function bindEvents() {
+  document.querySelectorAll('[data-action="start-game"]').forEach(button => button.addEventListener("click", startGame));
+  document.querySelectorAll('[data-action="start-tutorial"]').forEach(button => button.addEventListener("click", openTutorial));
+  $("homeButton").addEventListener("click", () => { stopTimer(); setView("home"); updateHomeStats(data.stats); });
+  $("rulesButton").addEventListener("click", () => $("rulesDialog").showModal());
+  $("settingsButton").addEventListener("click", () => $("settingsDialog").showModal());
+  $("restartButton").addEventListener("click", resetGame);
+  $("playAgainButton").addEventListener("click", () => { $("gameOverDialog").close(); resetGame(); });
+  $("backHomeButton").addEventListener("click", () => { $("gameOverDialog").close(); setView("home"); updateHomeStats(data.stats); });
+  $("tutorialNext").addEventListener("click", nextTutorial);
+  document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => $(button.dataset.close).close()));
+  $("settingsDialog").querySelector("form").addEventListener("submit", saveSettings);
+  $("modeSelect").addEventListener("change", updateSettingsVisibility);
+  $("quickModeSelect").addEventListener("change", changeMode);
+}
+
+function startGame() {
+  setView("game");
+  resetGame();
+  if (!data.tutorialSeen) openTutorial();
+}
+
+function resetGame() {
+  stopTimer();
+  state = newState();
+  render();
+  startTimer();
+}
+
+function render() {
+  renderEnergy("playerEnergy", "playerEnergyCount", state.player.energy);
+  renderEnergy("aiEnergy", "aiEnergyCount", state.ai.energy);
+  $("playerScore").textContent = state.player.score;
+  $("aiScore").textContent = state.ai.score;
+  $("roundNumber").textContent = state.round;
+  const names = { easy: "简单", normal: "普通", hard: "困难", hell: "地狱" };
+  const modeNames = { standard: "标准", endless: "无尽", zen: "禅" };
+  $("modeLabel").textContent = `${modeNames[data.settings.mode]}对决 · ${names[data.settings.difficulty]}`;
+  const continuous = data.settings.mode !== "standard";
+  $("standardScore").classList.toggle("hidden", continuous);
+  $("endlessScore").classList.toggle("hidden", !continuous);
+  $("endlessWins").textContent = state.endless.wins;
+  $("endlessLosses").textContent = state.endless.losses;
+  $("endlessStreak").textContent = state.endless.streak;
+  $("endlessBest").textContent = state.endless.best;
+  const hideEnergy = data.settings.mode === "zen" || !data.settings.energyVisible;
+  $("playerPanel").classList.toggle("energy-hidden", hideEnergy);
+  $("aiPanel").classList.toggle("energy-hidden", hideEnergy);
+  document.body.classList.toggle("zen-mode", data.settings.mode === "zen");
+  renderMoves(state.player.energy, selectMove, state.busy);
+  $("logCount").textContent = state.log.length;
+  $("logList").innerHTML = state.log.map(item => `<li><b>第${item.round}回合</b>　你 ${MOVES[item.player].name} · AI ${MOVES[item.ai].name}　— ${item.title}</li>`).join("");
+}
+
+async function selectMove(playerKey) {
+  if (state.busy || MOVES[playerKey].cost > state.player.energy) return;
+  state.busy = true;
+  stopTimer();
+  renderMoves(state.player.energy, selectMove, true);
+  const aiKey = chooseAiMove(data.settings.difficulty, { aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history }, playerKey);
+  revealMove("player", playerKey, true);
+  revealMove("ai", aiKey, true);
+  $("clash").className = "clash";
+  $("clashKicker").textContent = "准备";
+  $("clashTitle").textContent = "拍手——";
+  $("clashDetail").textContent = "双方即将同时出招。";
+  await beat();
+  await beat();
+  revealMove("player", playerKey);
+  revealMove("ai", aiKey);
+  settleRound(playerKey, aiKey);
+}
+
+function beat() {
+  showClap();
+  playTone(150);
+  if (navigator.vibrate) navigator.vibrate(35);
+  return new Promise(resolve => setTimeout(resolve, 330));
+}
+
+function settleRound(playerKey, aiKey) {
+  const result = resolveCombat(playerKey, aiKey);
+  spendAndGain("player", playerKey);
+  spendAndGain("ai", aiKey);
+  let resultClass = "draw";
+  if (result.playerHit && !result.aiHit) { state.ai.score++; resultClass = "lose"; }
+  if (result.aiHit && !result.playerHit) { state.player.score++; resultClass = "win"; }
+  if (data.settings.mode !== "standard") {
+    if (resultClass === "win") {
+      state.endless.wins++;
+      state.endless.streak++;
+      state.endless.best = Math.max(state.endless.best, state.endless.streak);
+    } else if (resultClass === "lose") {
+      state.endless.losses++;
+      state.endless.streak = 0;
+    }
+  }
+  if (result.reset || result.playerHit || result.aiHit) state.player.energy = state.ai.energy = 0;
+  state.history.push(playerKey);
+  state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title });
+  $("clash").className = `clash ${resultClass}`;
+  $("clashKicker").textContent = resultClass === "win" ? "你赢下这回合" : resultClass === "lose" ? "AI 赢下这回合" : "本回合平局";
+  $("clashTitle").textContent = result.title;
+  $("clashDetail").textContent = result.detail;
+  if (result.playerHit || result.aiHit) { playTone(resultClass === "win" ? 520 : 95, .18); if (navigator.vibrate) navigator.vibrate(resultClass === "win" ? [40, 30, 70] : 120); }
+  state.round++;
+  state.busy = false;
+  render();
+  if (data.settings.mode === "standard" && (state.player.score >= data.settings.winScore || state.ai.score >= data.settings.winScore)) setTimeout(endGame, 550);
+  else startTimer();
+}
+
+function spendAndGain(who, moveKey) {
+  const move = MOVES[moveKey];
+  state[who].energy = Math.max(0, state[who].energy - move.cost);
+  if (move.gain) state[who].energy = Math.min(MAX_ENERGY, state[who].energy + move.gain);
+}
+
+function endGame() {
+  stopTimer();
+  const won = state.player.score > state.ai.score;
+  data.stats.games++;
+  if (won) {
+    data.stats.wins++;
+    data.stats.currentStreak++;
+    data.stats.bestStreak = Math.max(data.stats.bestStreak, data.stats.currentStreak);
+  } else {
+    data.stats.losses++;
+    data.stats.currentStreak = 0;
+  }
+  saveData(data);
+  $("resultSeal").textContent = won ? "胜" : "败";
+  $("gameOverTitle").textContent = won ? "漂亮！" : "再来一次";
+  $("gameOverText").textContent = `${state.player.score} : ${state.ai.score} · ${won ? `当前 ${data.stats.currentStreak} 连胜` : "AI 抓住了你的节奏"}`;
+  $("gameOverDialog").showModal();
+}
+
+function startTimer() {
+  stopTimer();
+  if (!data.settings.timerEnabled || state.busy) return;
+  const track = $("timerTrack");
+  const bar = $("timerBar");
+  track.classList.remove("hidden");
+  let remaining = data.settings.timerSeconds * 10;
+  bar.style.width = "100%";
+  timerId = setInterval(() => {
+    remaining--;
+    bar.style.width = `${Math.max(0, remaining / (data.settings.timerSeconds * 10) * 100)}%`;
+    if (remaining <= 0) { stopTimer(); showToast("时间到，自动选择“防”"); selectMove("guard"); }
+  }, 100);
+}
+
+function stopTimer() {
+  clearInterval(timerId);
+  timerId = null;
+  $("timerTrack")?.classList.add("hidden");
+}
+
+function openTutorial() {
+  tutorialIndex = 0;
+  renderTutorial();
+  $("tutorialDialog").showModal();
+}
+
+function nextTutorial() {
+  if (tutorialIndex < tutorial.length - 1) { tutorialIndex++; renderTutorial(); return; }
+  data.tutorialSeen = true;
+  saveData(data);
+  $("tutorialDialog").close();
+  if ($("homeView").classList.contains("active")) startGame();
+}
+
+function renderTutorial() {
+  const step = tutorial[tutorialIndex];
+  $("tutorialStep").innerHTML = `<div class="tutorial-icon">${step.icon}</div><p class="eyebrow">${tutorialIndex + 1} / ${tutorial.length}</p><h2>${step.title}</h2><p>${step.text}</p><div class="tutorial-demo">${step.demo}</div>`;
+  $("tutorialDots").innerHTML = tutorial.map((_, index) => `<i class="${index === tutorialIndex ? "active" : ""}"></i>`).join("");
+  $("tutorialNext").textContent = tutorialIndex === tutorial.length - 1 ? "开始练习" : "下一步";
+}
+
+function syncSettingsForm() {
+  $("quickModeSelect").value = data.settings.mode;
+  $("modeSelect").value = data.settings.mode;
+  $("difficultySelect").value = data.settings.difficulty;
+  $("winScoreSelect").value = String(data.settings.winScore);
+  $("timerToggle").checked = data.settings.timerEnabled;
+  $("timerSeconds").value = data.settings.timerSeconds;
+  $("energyToggle").checked = data.settings.energyVisible;
+  $("soundToggle").checked = data.settings.sound;
+  updateSettingsVisibility();
+}
+
+function saveSettings(event) {
+  event.preventDefault();
+  data.settings = {
+    mode: $("modeSelect").value,
+    difficulty: $("difficultySelect").value,
+    winScore: Number($("winScoreSelect").value),
+    timerEnabled: $("timerToggle").checked,
+    timerSeconds: Math.min(15, Math.max(0, Number.isFinite(Number($("timerSeconds").value)) ? Number($("timerSeconds").value) : 15)),
+    energyVisible: $("energyToggle").checked,
+    sound: $("soundToggle").checked
+  };
+  $("quickModeSelect").value = data.settings.mode;
+  saveData(data);
+  $("settingsDialog").close();
+  showToast("设置已保存");
+  if ($("gameView").classList.contains("active")) resetGame();
+}
+
+function updateSettingsVisibility() {
+  const mode = $("modeSelect").value;
+  $("winScoreSetting").classList.toggle("hidden", mode !== "standard");
+  $("energySetting").classList.toggle("hidden", mode === "zen");
+}
+
+function changeMode() {
+  data.settings.mode = $("quickModeSelect").value;
+  saveData(data);
+  syncSettingsForm();
+  if ($("gameView").classList.contains("active")) resetGame();
+  else render();
+  showToast(`已切换到${{ standard: "标准", endless: "无尽", zen: "禅" }[data.settings.mode]}模式`);
+}
+
+function playTone(frequency, duration = .08) {
+  if (!data.settings.sound) return;
+  try {
+    audioContext ||= new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.frequency.value = frequency;
+    oscillator.type = "triangle";
+    gain.gain.setValueAtTime(.08, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration);
+    oscillator.connect(gain).connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + duration);
+  } catch {}
+}
+
+init();
+
+  </script>
+</body>
+</html>

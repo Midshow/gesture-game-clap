@@ -8,7 +8,9 @@ const defaults = {
 export function loadData() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
-    return { ...defaults, ...saved, settings: { ...defaults.settings, ...saved.settings }, stats: { ...defaults.stats, ...saved.stats } };
+    const merged = { ...defaults, ...saved, settings: { ...defaults.settings, ...saved.settings }, stats: { ...defaults.stats, ...saved.stats } };
+    if (merged.settings.difficulty === "mindreader") merged.settings.difficulty = "hell";
+    return merged;
   } catch {
     return structuredClone(defaults);
   }

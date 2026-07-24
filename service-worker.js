@@ -1,4 +1,4 @@
-const CACHE = "hezhang-v5";
+const CACHE = "hezhang-v6";
 const ASSETS = [
   "./", "./index.html", "./styles.css", "./manifest.webmanifest",
   "./js/app.js", "./js/moves.js", "./js/combat.js", "./js/ai.js", "./js/storage.js", "./js/ui.js",

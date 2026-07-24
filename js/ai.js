@@ -1,44 +1,85 @@
-import { ATTACK_KEYS, MOVES, canAfford } from "./moves.js";
+import { MOVES, canAfford } from "./moves.js";
+import { resolveCombat } from "./combat.js";
 
-const randomItem = items => items[Math.floor(Math.random() * items.length)];
 const legalMoves = energy => Object.keys(MOVES).filter(key => canAfford(key, energy));
 
-function counterMove(playerMove, energy) {
-  const move = MOVES[playerMove];
-  if (playerMove === "forge") return energy >= 1 ? "knife" : "forge";
-  if (move.type === "attack") {
-    const stronger = ATTACK_KEYS.find(key => MOVES[key].level === move.level + 1 && canAfford(key, energy));
-    if (stronger) return stronger;
-    if (move.level <= 2) return "guard";
-    if ([2, 3].includes(move.level)) return "catch";
-    if (move.level <= 5 && energy >= 2) return "flash";
-    return canAfford(playerMove, energy) ? playerMove : "forge";
-  }
-  if (playerMove === "guard") return energy >= 3 ? "shuriken" : "forge";
-  if (playerMove === "catch" || playerMove === "flash") return energy >= 1 ? "knife" : "forge";
-  return "forge";
+const LEVELS = {
+  easy:   { history: .20, noise: 1.8, explore: .18 },
+  normal: { history: .55, noise: .8, explore: .08 },
+  hard:   { history: .85, noise: .3, explore: .03 },
+  hell:   { history: 1.15, noise: .08, explore: 0 }
+};
+
+function playerMoveWeights(playerEnergy, history, historyStrength) {
+  const candidates = legalMoves(playerEnergy);
+  const recent = history.slice(-14);
+  const counts = Object.fromEntries(candidates.map(key => [key, 0]));
+  recent.forEach(key => {
+    if (key in counts) counts[key]++;
+  });
+
+  return candidates.map(key => {
+    const move = MOVES[key];
+    let weight = 1;
+    if (key === "forge") weight += playerEnergy <= 1 ? 2.4 : playerEnergy >= 5 ? -.45 : .55;
+    if (move.type === "attack") {
+      weight += playerEnergy >= move.cost ? .35 : 0;
+      if (move.cost === playerEnergy) weight += .25;
+    }
+    if (key === "guard") weight += playerEnergy <= 1 ? .7 : .15;
+    if (key === "catch" && playerEnergy >= 2) weight += .2;
+    if (key === "flash" && playerEnergy >= 4) weight += .35;
+    if (recent.length) weight += (counts[key] / recent.length) * 5 * historyStrength;
+    return { key, weight: Math.max(.08, weight) };
+  });
 }
 
-function strategicMove(context, strength) {
-  const { aiEnergy, playerEnergy, history } = context;
-  if (aiEnergy === 6) return "void";
-  if (playerEnergy === 0 && aiEnergy > 0 && Math.random() < .5 + strength * .3) return "knife";
-  const recent = history.slice(-8);
-  const forgeRate = recent.length ? recent.filter(move => move === "forge").length / recent.length : .45;
-  if (aiEnergy > 0 && forgeRate > .45 && Math.random() < strength) return aiEnergy >= 3 ? "shuriken" : "knife";
-  if (playerEnergy >= 4 && aiEnergy >= 2 && Math.random() < .25 + strength * .3) return "flash";
-  if (aiEnergy >= 3 && aiEnergy > playerEnergy && Math.random() < .35 + strength * .25) return "shuriken";
-  if (aiEnergy < 2 && Math.random() < .72) return "forge";
-  const weighted = [...legalMoves(aiEnergy), "forge", "guard"];
-  return randomItem(weighted);
+function futureEnergy(energy, moveKey) {
+  const move = MOVES[moveKey];
+  return Math.max(0, energy - move.cost + (move.gain || 0));
 }
 
-export function chooseAiMove(difficulty, context, playerMove) {
-  if (context.aiEnergy === 0 && context.playerEnergy === 0) return "forge";
-  if (difficulty === "mindreader" && Math.random() < .75) return counterMove(playerMove, context.aiEnergy);
-  if (difficulty === "easy") {
-    const pool = legalMoves(context.aiEnergy);
-    return Math.random() < .28 ? "forge" : randomItem(pool);
+function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy) {
+  const result = resolveCombat(playerKey, aiKey);
+  let score = 0;
+  if (result.playerHit && !result.aiHit) score += 12;
+  else if (result.aiHit && !result.playerHit) score -= 14;
+  else if (result.aiHit && result.playerHit) score -= 2.5;
+  else score += .8;
+  if (result.reset) score += aiEnergy < playerEnergy ? 2.2 : -.8;
+  score += futureEnergy(aiEnergy, aiKey) * .28;
+  score -= futureEnergy(playerEnergy, playerKey) * .12;
+  if (aiKey === "forge" && playerEnergy > 0) score -= .45;
+  return score;
+}
+
+function weightedChoice(scored, temperature) {
+  const max = Math.max(...scored.map(item => item.score));
+  const weighted = scored.map(item => ({ ...item, weight: Math.exp((item.score - max) / temperature) }));
+  let roll = Math.random() * weighted.reduce((sum, item) => sum + item.weight, 0);
+  for (const item of weighted) {
+    roll -= item.weight;
+    if (roll <= 0) return item.key;
   }
-  return strategicMove(context, difficulty === "hard" ? .9 : .55);
+  return weighted[weighted.length - 1].key;
+}
+
+export function chooseAiMove(difficulty, context) {
+  const level = LEVELS[difficulty] || LEVELS.normal;
+  const aiMoves = legalMoves(context.aiEnergy);
+  const playerWeights = playerMoveWeights(context.playerEnergy, context.history, level.history);
+  const totalWeight = playerWeights.reduce((sum, item) => sum + item.weight, 0);
+
+  const scored = aiMoves.map(aiKey => {
+    const expected = playerWeights.reduce(
+      (sum, player) => sum + scoreMatchup(player.key, aiKey, context.aiEnergy, context.playerEnergy) * player.weight,
+      0
+    ) / totalWeight;
+    return { key: aiKey, score: expected + (Math.random() - .5) * level.noise };
+  }).sort((a, b) => b.score - a.score);
+
+  if (level.explore && Math.random() < level.explore) {
+    return weightedChoice(scored, 2.5);
+  }
+  return weightedChoice(scored.slice(0, difficulty === "hell" ? 2 : 4), difficulty === "hell" ? .16 : .65);
 }
