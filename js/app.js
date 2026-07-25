@@ -121,7 +121,7 @@ async function selectMove(playerKey) {
     playerFighter: state.player, aiFighter: state.ai,
     weaponHistory: state.weaponHistory,
     scissorsEnabled: data.settings.scissorsEnabled
-  });
+  }, playerKey);
   revealMove("player", playerKey, true);
   revealMove("ai", aiKey, true);
   $("clash").className = "clash";

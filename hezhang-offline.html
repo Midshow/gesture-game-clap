@@ -155,7 +155,7 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
     <div class="dialog-head"><div><p class="eyebrow">本机保存</p><h2>练习设置</h2></div><button class="icon-button" data-close="settingsDialog" aria-label="关闭">×</button></div>
     <form class="settings-form" method="dialog">
       <label>游戏模式<select id="modeSelect"><option value="standard">标准 · 达到目标胜场结束</option><option value="endless">无尽 · 持续记录连胜</option><option value="zen">禅 · 隐藏能量的无尽对决</option></select></label>
-      <label>AI 难度<select id="difficultySelect"><option value="easy">简单 · 会看双方能量</option><option value="normal">普通 · 会判断攻防风险</option><option value="hard">困难 · 会学习出招习惯</option><option value="hell">地狱 · 高强度策略计算</option></select></label>
+      <label>AI 难度<select id="difficultySelect"><option value="easy">简单 · 25% 后手判断</option><option value="normal">普通 · 50% 后手判断</option><option value="hard">困难 · 75% 后手判断</option><option value="hell">地狱 · 95% 后手判断</option></select></label>
       <label id="winScoreSetting">目标胜场<select id="winScoreSelect"><option value="1">一局定胜负</option><option value="3">先得 3 分</option><option value="5">先得 5 分</option><option value="7">先得 7 分</option></select></label>
       <label class="switch-row"><span>回合计时<small>超时自动选择“防”</small></span><input id="timerToggle" type="checkbox"></label>
       <label>计时秒数<input id="timerSeconds" type="number" min="0" max="15" step="any"></label>
@@ -411,10 +411,10 @@ const legalMoves = (energy, scissorsEnabled = false) => Object.keys(MOVES).filte
 const legalSkillMoves = (energy, skill, fighter, scissorsEnabled = false) => availableMoveKeys(skill, scissorsEnabled).filter(key => moveCost(key, skill, fighter) <= energy);
 
 const LEVELS = {
-  easy:   { history: .20, noise: 1.8, explore: .18 },
-  normal: { history: .55, noise: .8, explore: .08 },
-  hard:   { history: .85, noise: .3, explore: .03 },
-  hell:   { history: 1.15, noise: .08, explore: 0 }
+  easy:   { history: .35, noise: .9, explore: .10, seeRate: .25, risk: .12 },
+  normal: { history: .70, noise: .35, explore: .03, seeRate: .50, risk: .24 },
+  hard:   { history: 1.05, noise: .12, explore: .01, seeRate: .75, risk: .40 },
+  hell:   { history: 1.35, noise: .03, explore: 0, seeRate: .95, risk: .58 }
 };
 
 function playerMoveWeights(playerEnergy, history, historyStrength, skill = null, fighter = {}, scissorsEnabled = false) {
@@ -516,7 +516,7 @@ function weightedChoice(scored, temperature) {
   return weighted[weighted.length - 1].key;
 }
 
-function chooseAiMove(difficulty, context) {
+function chooseAiMove(difficulty, context, playerMove = null) {
   // Absolute rules requested by the game design. They intentionally run before
   // skill costs or strategic evaluation.
   if (context.aiEnergy === 0 && context.playerEnergy === 0) return "forge";
@@ -530,20 +530,40 @@ function chooseAiMove(difficulty, context) {
     context.playerEnergy, context.history, level.history,
     context.skillsEnabled ? context.playerSkill : null, context.playerFighter, context.scissorsEnabled
   );
+  if (playerMove && Math.random() < level.seeRate) {
+    return chooseKnownResponse(aiMoves, playerMove, context, level);
+  }
   const totalWeight = playerWeights.reduce((sum, item) => sum + item.weight, 0);
 
   const scored = aiMoves.map(aiKey => {
-    const expected = playerWeights.reduce(
-      (sum, player) => sum + scoreMatchup(player.key, aiKey, context.aiEnergy, context.playerEnergy, context) * player.weight,
-      0
-    ) / totalWeight;
-    return { key: aiKey, score: expected + (Math.random() - .5) * level.noise };
+    const matchupScores = playerWeights.map(player => ({
+      score: scoreMatchup(player.key, aiKey, context.aiEnergy, context.playerEnergy, context),
+      weight: player.weight
+    }));
+    const expected = matchupScores.reduce((sum, item) => sum + item.score * item.weight, 0) / totalWeight;
+    const worstCase = Math.min(...matchupScores.map(item => item.score));
+    const riskAdjusted = expected * (1 - level.risk) + worstCase * level.risk;
+    return { key: aiKey, score: riskAdjusted + (Math.random() - .5) * level.noise };
   }).sort((a, b) => b.score - a.score);
 
   if (level.explore && Math.random() < level.explore) {
     return weightedChoice(scored, 2.5);
   }
   return weightedChoice(scored.slice(0, difficulty === "hell" ? 2 : 4), difficulty === "hell" ? .16 : .65);
+}
+
+function chooseKnownResponse(aiMoves, playerMove, context, level) {
+  const scored = aiMoves.map(aiKey => ({
+    key: aiKey,
+    score: scoreMatchup(playerMove, aiKey, context.aiEnergy, context.playerEnergy, context)
+      + (Math.random() - .5) * level.noise * .18
+  })).sort((a, b) => b.score - a.score);
+
+  // Even when seeing the move, lower difficulties retain a small amount of
+  // human-like variation among near-equivalent legal responses.
+  const margin = level.seeRate >= .9 ? .12 : level.seeRate >= .7 ? .35 : .7;
+  const nearBest = scored.filter(item => scored[0].score - item.score <= margin);
+  return weightedChoice(nearBest, Math.max(.08, 1 - level.seeRate));
 }
 
 
@@ -761,7 +781,7 @@ async function selectMove(playerKey) {
     playerFighter: state.player, aiFighter: state.ai,
     weaponHistory: state.weaponHistory,
     scissorsEnabled: data.settings.scissorsEnabled
-  });
+  }, playerKey);
   revealMove("player", playerKey, true);
   revealMove("ai", aiKey, true);
   $("clash").className = "clash";
