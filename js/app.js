@@ -95,7 +95,8 @@ function render() {
   document.body.classList.toggle("zen-mode", data.settings.mode === "zen");
   renderMoves(
     state.player.energy, selectMove, state.busy,
-    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player
+    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player,
+    data.settings.scissorsEnabled
   );
   $("logCount").textContent = state.log.length;
   $("logList").innerHTML = state.log.map(item => `<li><b>第${item.round}回合</b>　你 ${skillMove(item.player).name} · AI ${skillMove(item.ai).name}　— ${item.title}</li>`).join("");
@@ -110,14 +111,16 @@ async function selectMove(playerKey) {
   stopTimer();
   renderMoves(
     state.player.energy, selectMove, true,
-    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player
+    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player,
+    data.settings.scissorsEnabled
   );
   const aiKey = chooseAiMove(data.settings.difficulty, {
     aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history,
     skillsEnabled: data.settings.skillsEnabled,
     playerSkill: data.settings.playerSkill, aiSkill: data.settings.aiSkill,
     playerFighter: state.player, aiFighter: state.ai,
-    weaponHistory: state.weaponHistory
+    weaponHistory: state.weaponHistory,
+    scissorsEnabled: data.settings.scissorsEnabled
   });
   revealMove("player", playerKey, true);
   revealMove("ai", aiKey, true);
@@ -413,6 +416,7 @@ function syncSettingsForm() {
   $("skillToggle").checked = data.settings.skillsEnabled;
   $("playerSkillSelect").value = data.settings.playerSkill;
   $("aiSkillSelect").value = data.settings.aiSkill;
+  $("scissorsToggle").checked = data.settings.scissorsEnabled;
   $("soundToggle").checked = data.settings.sound;
   updateSettingsVisibility();
 }
@@ -429,6 +433,7 @@ function saveSettings(event) {
     skillsEnabled: $("skillToggle").checked,
     playerSkill: $("playerSkillSelect").value,
     aiSkill: $("aiSkillSelect").value,
+    scissorsEnabled: $("scissorsToggle").checked,
     sound: $("soundToggle").checked
   };
   $("quickModeSelect").value = data.settings.mode;

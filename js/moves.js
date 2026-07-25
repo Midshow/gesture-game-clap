@@ -5,6 +5,7 @@ export const MOVES = {
   guard: { name: "防", type: "basic", icon: "🛡️", cost: 0, blocks: [1, 2], summary: "挡 1～2 级 · 免费", rule: "挡住小刀和武士刀；挡不住3级以上攻击。" },
   catch: { name: "接", type: "basic", icon: "🤲", cost: 0, blocks: [2, 3], resets: true, summary: "挡 2～3 级 · 重置", rule: "接住武士刀或手里剑后，双方能量归零。" },
   flash: { name: "闪", type: "basic", icon: "💨", cost: 2, blocks: [2, 3, 4, 5], resets: true, summary: "挡 2～5 级 · 2 能量", rule: "躲开2～5级攻击并重置能量；挡不了小刀和虚无。" },
+  scissors: { name: "剪刀", type: "attack", icon: "✂️", cost: 1, level: 1.5, summary: "特殊攻击 · 1 能量", rule: "克制小刀、武士刀、手里剑和接；被防、闪、锻造、苦无、龙牙和虚无克制。" },
   knife: { name: "小刀", type: "attack", icon: "🔪", cost: 1, level: 1, summary: "1 级攻击", rule: "最低消耗的攻击，可击中锻造、接和闪。" },
   katana: { name: "武士刀", type: "attack", icon: "⚔️", cost: 2, level: 2, summary: "2 级攻击", rule: "强于小刀，但会被防、接和闪挡住。" },
   shuriken: { name: "手里剑", type: "attack", icon: "✦", cost: 3, level: 3, summary: "3 级攻击", rule: "能够突破防，但会被接或闪挡住。" },

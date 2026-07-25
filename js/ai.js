@@ -2,8 +2,8 @@ import { MOVES, canAfford } from "./moves.js";
 import { resolveCombat } from "./combat.js";
 import { availableMoveKeys, moveCost, previewSkillDamage, resolveWithSkills, skillMove, whiteTowerRefunds } from "./skills.js";
 
-const legalMoves = energy => Object.keys(MOVES).filter(key => canAfford(key, energy));
-const legalSkillMoves = (energy, skill, fighter) => availableMoveKeys(skill).filter(key => moveCost(key, skill, fighter) <= energy);
+const legalMoves = (energy, scissorsEnabled = false) => Object.keys(MOVES).filter(key => (scissorsEnabled || key !== "scissors") && canAfford(key, energy));
+const legalSkillMoves = (energy, skill, fighter, scissorsEnabled = false) => availableMoveKeys(skill, scissorsEnabled).filter(key => moveCost(key, skill, fighter) <= energy);
 
 const LEVELS = {
   easy:   { history: .20, noise: 1.8, explore: .18 },
@@ -12,8 +12,8 @@ const LEVELS = {
   hell:   { history: 1.15, noise: .08, explore: 0 }
 };
 
-function playerMoveWeights(playerEnergy, history, historyStrength, skill = null, fighter = {}) {
-  const candidates = skill ? legalSkillMoves(playerEnergy, skill, fighter) : legalMoves(playerEnergy);
+function playerMoveWeights(playerEnergy, history, historyStrength, skill = null, fighter = {}, scissorsEnabled = false) {
+  const candidates = skill ? legalSkillMoves(playerEnergy, skill, fighter, scissorsEnabled) : legalMoves(playerEnergy, scissorsEnabled);
   const recent = history.slice(-14);
   const counts = Object.fromEntries(candidates.map(key => [key, 0]));
   recent.forEach(key => {
@@ -112,13 +112,18 @@ function weightedChoice(scored, temperature) {
 }
 
 export function chooseAiMove(difficulty, context) {
+  // Absolute rules requested by the game design. They intentionally run before
+  // skill costs or strategic evaluation.
+  if (context.aiEnergy === 0 && context.playerEnergy === 0) return "forge";
+  if (context.aiEnergy === 6) return "void";
+
   const level = LEVELS[difficulty] || LEVELS.normal;
   const aiMoves = context.skillsEnabled
-    ? legalSkillMoves(context.aiEnergy, context.aiSkill, context.aiFighter)
-    : legalMoves(context.aiEnergy);
+    ? legalSkillMoves(context.aiEnergy, context.aiSkill, context.aiFighter, context.scissorsEnabled)
+    : legalMoves(context.aiEnergy, context.scissorsEnabled);
   const playerWeights = playerMoveWeights(
     context.playerEnergy, context.history, level.history,
-    context.skillsEnabled ? context.playerSkill : null, context.playerFighter
+    context.skillsEnabled ? context.playerSkill : null, context.playerFighter, context.scissorsEnabled
   );
   const totalWeight = playerWeights.reduce((sum, item) => sum + item.weight, 0);
 

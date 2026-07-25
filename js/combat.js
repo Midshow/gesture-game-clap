@@ -8,6 +8,7 @@ export function resolveCombat(playerKey, aiKey) {
   const player = MOVES[playerKey];
   const ai = MOVES[aiKey];
   if (!player || !ai) throw new Error("未知招式");
+  if (playerKey === "scissors" || aiKey === "scissors") return resolveScissors(playerKey, aiKey);
 
   if (player.type === "basic" && ai.type === "basic") {
     if (playerKey === "forge" && aiKey === "forge") return outcome(false, false, false, "双方锻造", "各获得1格能量。");
@@ -23,6 +24,35 @@ export function resolveCombat(playerKey, aiKey) {
   }
   if (player.type === "attack") return attackVsDefense(playerKey, aiKey, false);
   if (ai.type === "attack") return attackVsDefense(aiKey, playerKey, true);
+  return outcome(false, false, false, "相互试探", "没有人被击中。");
+}
+
+function resolveScissors(playerKey, aiKey) {
+  if (playerKey === "scissors" && aiKey === "scissors") {
+    return outcome(false, false, false, "抵刀", "双方剪刀相抵，均不受伤。");
+  }
+
+  const scissorsIsPlayer = playerKey === "scissors";
+  const opponentKey = scissorsIsPlayer ? aiKey : playerKey;
+  const scissorsWins = ["knife", "katana", "shuriken", "catch"];
+  const scissorsLoses = ["forge", "kunai", "dragonFang", "void"];
+
+  if (opponentKey === "guard") {
+    return outcome(false, false, false, "防住剪刀", "剪刀被“防”挡住。");
+  }
+  if (opponentKey === "flash") {
+    return outcome(false, false, true, "闪过剪刀", "闪成功躲开剪刀，双方能量重置。");
+  }
+  if (scissorsWins.includes(opponentKey)) {
+    return scissorsIsPlayer
+      ? outcome(false, true, false, "剪刀克制", `剪刀击败${MOVES[opponentKey].name}。`)
+      : outcome(true, false, false, "剪刀克制", `剪刀击败${MOVES[opponentKey].name}。`);
+  }
+  if (scissorsLoses.includes(opponentKey)) {
+    return scissorsIsPlayer
+      ? outcome(true, false, false, `${MOVES[opponentKey].name}克制剪刀`, "剪刀被克制。")
+      : outcome(false, true, false, `${MOVES[opponentKey].name}克制剪刀`, "剪刀被克制。");
+  }
   return outcome(false, false, false, "相互试探", "没有人被击中。");
 }
 

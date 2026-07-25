@@ -8,8 +8,10 @@ export function renderEnergy(id, countId, energy) {
   $(countId).textContent = energy;
 }
 
-export function renderMoves(energy, onSelect, busy = false, skillKey = null, fighter = {}) {
-  const keys = skillKey ? availableMoveKeys(skillKey) : Object.keys(MOVES);
+export function renderMoves(energy, onSelect, busy = false, skillKey = null, fighter = {}, scissorsEnabled = false) {
+  const keys = skillKey
+    ? availableMoveKeys(skillKey, scissorsEnabled)
+    : Object.keys(MOVES).filter(key => scissorsEnabled || key !== "scissors");
   const grid = $("moveGrid");
   grid.innerHTML = keys.map(key => {
     const move = skillMove(key);

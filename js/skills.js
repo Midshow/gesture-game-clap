@@ -47,8 +47,8 @@ export function whiteTowerRefunds(moveKey, weaponHistory) {
   return skillMove(moveKey).type === "attack" && !weaponHistory.includes(moveKey);
 }
 
-export function availableMoveKeys(skillKey) {
-  const keys = Object.keys(MOVES);
+export function availableMoveKeys(skillKey, scissorsEnabled = false) {
+  const keys = Object.keys(MOVES).filter(key => scissorsEnabled || key !== "scissors");
   if (skillKey === "guardian") keys.splice(keys.indexOf("forge"), 1);
   if (skillKey === "bulwark") keys.splice(4, 0, "bigShield");
   return keys;
@@ -65,7 +65,7 @@ export function resolveWithSkills(playerKey, aiKey, playerSkill, aiSkill) {
 
   const playerStorm = playerSkill === "storm" && playerKey === "katana";
   const aiStorm = aiSkill === "storm" && aiKey === "katana";
-  if ((playerStorm || aiStorm) && MOVES[playerKey].type === "attack" && MOVES[aiKey].type === "attack") {
+  if ((playerStorm || aiStorm) && playerKey !== "scissors" && aiKey !== "scissors" && MOVES[playerKey].type === "attack" && MOVES[aiKey].type === "attack") {
     const playerLevel = playerStorm ? 1.5 : MOVES[playerKey].level;
     const aiLevel = aiStorm ? 1.5 : MOVES[aiKey].level;
     result = playerLevel === aiLevel

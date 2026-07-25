@@ -24,6 +24,12 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
 .skill-rules-title{margin:30px 0 12px;font:800 24px "STKaiti","KaiTi",serif}
 .fighter.player{grid-column:1;grid-row:1}.clash{grid-column:2;grid-row:1}.fighter.ai{grid-column:3;grid-row:1}.fighter.point-won{animation:panelPoint .65s ease}.fighter.point-lost{animation:panelFade .65s ease}.score-feedback{min-height:24px;margin-top:12px;padding:0 10px;border-left:3px solid transparent;color:var(--muted);font-size:12px;display:flex;align-items:center;opacity:0;transform:translateY(-3px);transition:.2s}.score-feedback.show{opacity:1;transform:translateY(0)}.score-feedback.win{border-color:#52728a;color:#324f67}.score-feedback.lose{border-color:var(--red);color:var(--red-dark)}@keyframes panelPoint{0%,100%{box-shadow:none}35%{box-shadow:0 0 0 3px rgba(82,114,138,.16)}}@keyframes panelFade{0%,100%{opacity:1}35%{opacity:.72}}
 @media(max-width:800px){.fighter.player{grid-column:1;grid-row:1}.fighter.ai{grid-column:2;grid-row:1}.clash{grid-column:1/-1;grid-row:2}}
+@media(max-width:600px){
+  .topbar{height:48px;padding:0 8px}.brand-mark{width:32px;height:32px;font-size:17px}.brand strong{font-size:13px}.quiet-button{padding:6px 7px;font-size:10px}.quick-mode{padding:6px 20px 6px 8px;font-size:10px}
+  main{width:calc(100% - 12px)}.game-view{padding:8px 0 20px}.game-toolbar{min-height:38px;align-items:center}.game-toolbar .eyebrow{margin-bottom:3px;font-size:8px}.game-toolbar h2{font-size:20px}.score{gap:6px}.score strong{font-size:22px}.score i{font-size:16px}.score small{font-size:8px}.endless-score{gap:8px}.endless-score strong{font-size:16px}.score-feedback{min-height:18px;margin-top:3px;padding-left:6px;font-size:9px}
+  .duel-board{grid-template-columns:1fr .82fr 1fr;gap:5px;margin:4px 0 6px}.fighter.player{grid-column:1;grid-row:1}.clash{grid-column:2;grid-row:1;min-height:132px;padding:8px 4px}.fighter.ai{grid-column:3;grid-row:1}.fighter{min-width:0;min-height:132px;padding:7px}.fighter-head{gap:5px}.avatar{width:27px;height:27px;font-size:10px}.fighter-head small{display:none}.fighter-head strong{font-size:10px;white-space:nowrap}.skill-badge{margin-top:5px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.health-row,.energy-row{grid-template-columns:1fr 22px;margin-top:7px;gap:4px;font-size:8px}.health-row>span,.energy-row>span{display:none}.energy-track{gap:1px}.energy-cell{height:5px}.health-track{height:5px}.revealed-move{padding-top:7px;gap:4px;flex-direction:column;align-items:flex-start}.revealed-move span{font-size:20px}.revealed-move strong{font-size:12px}.clash p{font-size:7px;margin:0}.clash strong{font-size:14px;margin:5px 0}.clash>span{font-size:8px;line-height:1.3}.timer-track{margin-top:8px}
+  .move-dock{padding:8px;margin-top:0;box-shadow:none}.dock-heading h3{font-size:18px}.dock-heading .eyebrow{display:none}.move-legend{margin:5px 0;font-size:8px;gap:10px}.move-grid{grid-template-columns:repeat(6,1fr);gap:3px}.move-card{min-height:51px;padding:5px 2px 3px}.move-card .move-icon{font-size:15px}.move-card strong{font-size:9px;margin:4px 0 0}.move-card small{display:none}.move-cost{width:14px;height:14px;right:2px;top:2px;font-size:7px}.dock-hint{display:none}.battle-log{display:none}
+}
 
   </style>
 </head>
@@ -158,6 +164,7 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
       <label id="playerSkillSetting">你的技能<select id="playerSkillSelect"></select></label>
       <label id="aiSkillSetting">AI 技能<select id="aiSkillSelect"></select></label>
       <div class="skill-description hidden" id="skillDescription"></div>
+      <label class="switch-row"><span>剪刀模式<small>加入消耗1能量的特殊攻击“剪刀”</small></span><input id="scissorsToggle" type="checkbox"></label>
       <label class="switch-row"><span>音效<small>拍手和命中反馈</small></span><input id="soundToggle" type="checkbox"></label>
       <button class="primary-button" value="confirm">保存并重新开始</button>
     </form>
@@ -184,6 +191,7 @@ const MOVES = {
   guard: { name: "防", type: "basic", icon: "🛡️", cost: 0, blocks: [1, 2], summary: "挡 1～2 级 · 免费", rule: "挡住小刀和武士刀；挡不住3级以上攻击。" },
   catch: { name: "接", type: "basic", icon: "🤲", cost: 0, blocks: [2, 3], resets: true, summary: "挡 2～3 级 · 重置", rule: "接住武士刀或手里剑后，双方能量归零。" },
   flash: { name: "闪", type: "basic", icon: "💨", cost: 2, blocks: [2, 3, 4, 5], resets: true, summary: "挡 2～5 级 · 2 能量", rule: "躲开2～5级攻击并重置能量；挡不了小刀和虚无。" },
+  scissors: { name: "剪刀", type: "attack", icon: "✂️", cost: 1, level: 1.5, summary: "特殊攻击 · 1 能量", rule: "克制小刀、武士刀、手里剑和接；被防、闪、锻造、苦无、龙牙和虚无克制。" },
   knife: { name: "小刀", type: "attack", icon: "🔪", cost: 1, level: 1, summary: "1 级攻击", rule: "最低消耗的攻击，可击中锻造、接和闪。" },
   katana: { name: "武士刀", type: "attack", icon: "⚔️", cost: 2, level: 2, summary: "2 级攻击", rule: "强于小刀，但会被防、接和闪挡住。" },
   shuriken: { name: "手里剑", type: "attack", icon: "✦", cost: 3, level: 3, summary: "3 级攻击", rule: "能够突破防，但会被接或闪挡住。" },
@@ -210,6 +218,7 @@ function resolveCombat(playerKey, aiKey) {
   const player = MOVES[playerKey];
   const ai = MOVES[aiKey];
   if (!player || !ai) throw new Error("未知招式");
+  if (playerKey === "scissors" || aiKey === "scissors") return resolveScissors(playerKey, aiKey);
 
   if (player.type === "basic" && ai.type === "basic") {
     if (playerKey === "forge" && aiKey === "forge") return outcome(false, false, false, "双方锻造", "各获得1格能量。");
@@ -225,6 +234,35 @@ function resolveCombat(playerKey, aiKey) {
   }
   if (player.type === "attack") return attackVsDefense(playerKey, aiKey, false);
   if (ai.type === "attack") return attackVsDefense(aiKey, playerKey, true);
+  return outcome(false, false, false, "相互试探", "没有人被击中。");
+}
+
+function resolveScissors(playerKey, aiKey) {
+  if (playerKey === "scissors" && aiKey === "scissors") {
+    return outcome(false, false, false, "抵刀", "双方剪刀相抵，均不受伤。");
+  }
+
+  const scissorsIsPlayer = playerKey === "scissors";
+  const opponentKey = scissorsIsPlayer ? aiKey : playerKey;
+  const scissorsWins = ["knife", "katana", "shuriken", "catch"];
+  const scissorsLoses = ["forge", "kunai", "dragonFang", "void"];
+
+  if (opponentKey === "guard") {
+    return outcome(false, false, false, "防住剪刀", "剪刀被“防”挡住。");
+  }
+  if (opponentKey === "flash") {
+    return outcome(false, false, true, "闪过剪刀", "闪成功躲开剪刀，双方能量重置。");
+  }
+  if (scissorsWins.includes(opponentKey)) {
+    return scissorsIsPlayer
+      ? outcome(false, true, false, "剪刀克制", `剪刀击败${MOVES[opponentKey].name}。`)
+      : outcome(true, false, false, "剪刀克制", `剪刀击败${MOVES[opponentKey].name}。`);
+  }
+  if (scissorsLoses.includes(opponentKey)) {
+    return scissorsIsPlayer
+      ? outcome(true, false, false, `${MOVES[opponentKey].name}克制剪刀`, "剪刀被克制。")
+      : outcome(false, true, false, `${MOVES[opponentKey].name}克制剪刀`, "剪刀被克制。");
+  }
   return outcome(false, false, false, "相互试探", "没有人被击中。");
 }
 
@@ -290,8 +328,8 @@ function whiteTowerRefunds(moveKey, weaponHistory) {
   return skillMove(moveKey).type === "attack" && !weaponHistory.includes(moveKey);
 }
 
-function availableMoveKeys(skillKey) {
-  const keys = Object.keys(MOVES);
+function availableMoveKeys(skillKey, scissorsEnabled = false) {
+  const keys = Object.keys(MOVES).filter(key => scissorsEnabled || key !== "scissors");
   if (skillKey === "guardian") keys.splice(keys.indexOf("forge"), 1);
   if (skillKey === "bulwark") keys.splice(4, 0, "bigShield");
   return keys;
@@ -308,7 +346,7 @@ function resolveWithSkills(playerKey, aiKey, playerSkill, aiSkill) {
 
   const playerStorm = playerSkill === "storm" && playerKey === "katana";
   const aiStorm = aiSkill === "storm" && aiKey === "katana";
-  if ((playerStorm || aiStorm) && MOVES[playerKey].type === "attack" && MOVES[aiKey].type === "attack") {
+  if ((playerStorm || aiStorm) && playerKey !== "scissors" && aiKey !== "scissors" && MOVES[playerKey].type === "attack" && MOVES[aiKey].type === "attack") {
     const playerLevel = playerStorm ? 1.5 : MOVES[playerKey].level;
     const aiLevel = aiStorm ? 1.5 : MOVES[aiKey].level;
     result = playerLevel === aiLevel
@@ -369,8 +407,8 @@ function blocked(title) {
 
 
 
-const legalMoves = energy => Object.keys(MOVES).filter(key => canAfford(key, energy));
-const legalSkillMoves = (energy, skill, fighter) => availableMoveKeys(skill).filter(key => moveCost(key, skill, fighter) <= energy);
+const legalMoves = (energy, scissorsEnabled = false) => Object.keys(MOVES).filter(key => (scissorsEnabled || key !== "scissors") && canAfford(key, energy));
+const legalSkillMoves = (energy, skill, fighter, scissorsEnabled = false) => availableMoveKeys(skill, scissorsEnabled).filter(key => moveCost(key, skill, fighter) <= energy);
 
 const LEVELS = {
   easy:   { history: .20, noise: 1.8, explore: .18 },
@@ -379,8 +417,8 @@ const LEVELS = {
   hell:   { history: 1.15, noise: .08, explore: 0 }
 };
 
-function playerMoveWeights(playerEnergy, history, historyStrength, skill = null, fighter = {}) {
-  const candidates = skill ? legalSkillMoves(playerEnergy, skill, fighter) : legalMoves(playerEnergy);
+function playerMoveWeights(playerEnergy, history, historyStrength, skill = null, fighter = {}, scissorsEnabled = false) {
+  const candidates = skill ? legalSkillMoves(playerEnergy, skill, fighter, scissorsEnabled) : legalMoves(playerEnergy, scissorsEnabled);
   const recent = history.slice(-14);
   const counts = Object.fromEntries(candidates.map(key => [key, 0]));
   recent.forEach(key => {
@@ -479,13 +517,18 @@ function weightedChoice(scored, temperature) {
 }
 
 function chooseAiMove(difficulty, context) {
+  // Absolute rules requested by the game design. They intentionally run before
+  // skill costs or strategic evaluation.
+  if (context.aiEnergy === 0 && context.playerEnergy === 0) return "forge";
+  if (context.aiEnergy === 6) return "void";
+
   const level = LEVELS[difficulty] || LEVELS.normal;
   const aiMoves = context.skillsEnabled
-    ? legalSkillMoves(context.aiEnergy, context.aiSkill, context.aiFighter)
-    : legalMoves(context.aiEnergy);
+    ? legalSkillMoves(context.aiEnergy, context.aiSkill, context.aiFighter, context.scissorsEnabled)
+    : legalMoves(context.aiEnergy, context.scissorsEnabled);
   const playerWeights = playerMoveWeights(
     context.playerEnergy, context.history, level.history,
-    context.skillsEnabled ? context.playerSkill : null, context.playerFighter
+    context.skillsEnabled ? context.playerSkill : null, context.playerFighter, context.scissorsEnabled
   );
   const totalWeight = playerWeights.reduce((sum, item) => sum + item.weight, 0);
 
@@ -507,7 +550,7 @@ function chooseAiMove(difficulty, context) {
 /* js/storage.js */
 const KEY = "hezhang-game-v2";
 const defaults = {
-  settings: { mode: "standard", difficulty: "normal", winScore: 3, timerEnabled: false, timerSeconds: 15, energyVisible: true, skillsEnabled: false, playerSkill: "generalist", aiSkill: "generalist", sound: true },
+  settings: { mode: "standard", difficulty: "normal", winScore: 3, timerEnabled: false, timerSeconds: 15, energyVisible: true, skillsEnabled: false, playerSkill: "generalist", aiSkill: "generalist", scissorsEnabled: false, sound: true },
   stats: { games: 0, wins: 0, losses: 0, bestStreak: 0, currentStreak: 0 },
   tutorialSeen: false
 };
@@ -538,8 +581,10 @@ function renderEnergy(id, countId, energy) {
   $(countId).textContent = energy;
 }
 
-function renderMoves(energy, onSelect, busy = false, skillKey = null, fighter = {}) {
-  const keys = skillKey ? availableMoveKeys(skillKey) : Object.keys(MOVES);
+function renderMoves(energy, onSelect, busy = false, skillKey = null, fighter = {}, scissorsEnabled = false) {
+  const keys = skillKey
+    ? availableMoveKeys(skillKey, scissorsEnabled)
+    : Object.keys(MOVES).filter(key => scissorsEnabled || key !== "scissors");
   const grid = $("moveGrid");
   grid.innerHTML = keys.map(key => {
     const move = skillMove(key);
@@ -690,7 +735,8 @@ function render() {
   document.body.classList.toggle("zen-mode", data.settings.mode === "zen");
   renderMoves(
     state.player.energy, selectMove, state.busy,
-    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player
+    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player,
+    data.settings.scissorsEnabled
   );
   $("logCount").textContent = state.log.length;
   $("logList").innerHTML = state.log.map(item => `<li><b>第${item.round}回合</b>　你 ${skillMove(item.player).name} · AI ${skillMove(item.ai).name}　— ${item.title}</li>`).join("");
@@ -705,14 +751,16 @@ async function selectMove(playerKey) {
   stopTimer();
   renderMoves(
     state.player.energy, selectMove, true,
-    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player
+    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player,
+    data.settings.scissorsEnabled
   );
   const aiKey = chooseAiMove(data.settings.difficulty, {
     aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history,
     skillsEnabled: data.settings.skillsEnabled,
     playerSkill: data.settings.playerSkill, aiSkill: data.settings.aiSkill,
     playerFighter: state.player, aiFighter: state.ai,
-    weaponHistory: state.weaponHistory
+    weaponHistory: state.weaponHistory,
+    scissorsEnabled: data.settings.scissorsEnabled
   });
   revealMove("player", playerKey, true);
   revealMove("ai", aiKey, true);
@@ -1008,6 +1056,7 @@ function syncSettingsForm() {
   $("skillToggle").checked = data.settings.skillsEnabled;
   $("playerSkillSelect").value = data.settings.playerSkill;
   $("aiSkillSelect").value = data.settings.aiSkill;
+  $("scissorsToggle").checked = data.settings.scissorsEnabled;
   $("soundToggle").checked = data.settings.sound;
   updateSettingsVisibility();
 }
@@ -1024,6 +1073,7 @@ function saveSettings(event) {
     skillsEnabled: $("skillToggle").checked,
     playerSkill: $("playerSkillSelect").value,
     aiSkill: $("aiSkillSelect").value,
+    scissorsEnabled: $("scissorsToggle").checked,
     sound: $("soundToggle").checked
   };
   $("quickModeSelect").value = data.settings.mode;

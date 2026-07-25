@@ -12,6 +12,16 @@ assert.equal(resolveCombat("void", "flash").aiHit, true, "闪不应挡住虚无"
 assert.equal(resolveCombat("katana", "katana").playerHit, false, "同级抵刀时玩家不应受伤");
 assert.equal(resolveCombat("katana", "katana").aiHit, false, "同级抵刀时AI不应受伤");
 assert.equal(resolveCombat("shuriken", "knife").aiHit, true, "高级应压制低级");
+assert.equal(resolveCombat("scissors", "knife").aiHit, true, "剪刀应克制小刀");
+assert.equal(resolveCombat("scissors", "katana").aiHit, true, "剪刀应克制武士刀");
+assert.equal(resolveCombat("scissors", "shuriken").aiHit, true, "剪刀应克制手里剑");
+assert.equal(resolveCombat("scissors", "catch").aiHit, true, "剪刀应克制接");
+assert.equal(resolveCombat("scissors", "guard").aiHit, false, "防应挡住剪刀");
+assert.equal(resolveCombat("scissors", "flash").reset, true, "闪掉剪刀后应重置");
+assert.equal(resolveCombat("scissors", "forge").playerHit, true, "锻造应克制剪刀");
+assert.equal(resolveCombat("scissors", "kunai").playerHit, true, "苦无应克制剪刀");
+assert.equal(resolveCombat("scissors", "dragonFang").playerHit, true, "龙牙应克制剪刀");
+assert.equal(resolveCombat("scissors", "void").playerHit, true, "虚无应克制剪刀");
 
 for (const player of MOVE_KEYS) {
   for (const ai of MOVE_KEYS) {
