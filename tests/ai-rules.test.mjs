@@ -27,15 +27,15 @@ try {
   assert.equal(
     chooseAiMove("hell", { ...base, aiEnergy: 1, playerEnergy: 0 }, "forge"),
     "knife",
-    "看到玩家锻造时，应选择可负担的攻击直接命中"
+    "面对锻造时，应选择可负担的攻击直接命中"
   );
   assert.equal(
     chooseAiMove("hell", { ...base, aiEnergy: 1, playerEnergy: 1 }, "scissors"),
     "forge",
-    "剪刀模式下看到玩家出剪刀时，应识别锻造对剪刀的克制"
+    "剪刀模式下，应识别锻造对剪刀的克制"
   );
 } finally {
   Math.random = originalRandom;
 }
 
-console.log("通过：AI强制规则与后手应对。");
+console.log("通过：AI强制规则与策略分支。");

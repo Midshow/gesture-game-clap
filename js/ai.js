@@ -6,10 +6,10 @@ const legalMoves = (energy, scissorsEnabled = false) => Object.keys(MOVES).filte
 const legalSkillMoves = (energy, skill, fighter, scissorsEnabled = false) => availableMoveKeys(skill, scissorsEnabled).filter(key => moveCost(key, skill, fighter) <= energy);
 
 const LEVELS = {
-  easy:   { history: .35, noise: .9, explore: .10, seeRate: .25, risk: .12 },
-  normal: { history: .70, noise: .35, explore: .03, seeRate: .50, risk: .24 },
-  hard:   { history: 1.05, noise: .12, explore: .01, seeRate: .75, risk: .40 },
-  hell:   { history: 1.35, noise: .03, explore: 0, seeRate: .95, risk: .58 }
+  easy:   { history: .35, noise: .9, explore: .10, responseRate: .15, risk: .12 },
+  normal: { history: .70, noise: .35, explore: .03, responseRate: .30, risk: .24 },
+  hard:   { history: 1.05, noise: .12, explore: .01, responseRate: .45, risk: .40 },
+  hell:   { history: 1.35, noise: .03, explore: 0, responseRate: .65, risk: .58 }
 };
 
 function playerMoveWeights(playerEnergy, history, historyStrength, skill = null, fighter = {}, scissorsEnabled = false) {
@@ -125,8 +125,8 @@ export function chooseAiMove(difficulty, context, playerMove = null) {
     context.playerEnergy, context.history, level.history,
     context.skillsEnabled ? context.playerSkill : null, context.playerFighter, context.scissorsEnabled
   );
-  if (playerMove && Math.random() < level.seeRate) {
-    return chooseKnownResponse(aiMoves, playerMove, context, level);
+  if (playerMove && Math.random() < level.responseRate) {
+    return chooseReactiveMove(aiMoves, playerMove, context, level);
   }
   const totalWeight = playerWeights.reduce((sum, item) => sum + item.weight, 0);
 
@@ -147,16 +147,14 @@ export function chooseAiMove(difficulty, context, playerMove = null) {
   return weightedChoice(scored.slice(0, difficulty === "hell" ? 2 : 4), difficulty === "hell" ? .16 : .65);
 }
 
-function chooseKnownResponse(aiMoves, playerMove, context, level) {
+function chooseReactiveMove(aiMoves, playerMove, context, level) {
   const scored = aiMoves.map(aiKey => ({
     key: aiKey,
     score: scoreMatchup(playerMove, aiKey, context.aiEnergy, context.playerEnergy, context)
       + (Math.random() - .5) * level.noise * .18
   })).sort((a, b) => b.score - a.score);
 
-  // Even when seeing the move, lower difficulties retain a small amount of
-  // human-like variation among near-equivalent legal responses.
-  const margin = level.seeRate >= .9 ? .12 : level.seeRate >= .7 ? .35 : .7;
+  const margin = level.responseRate >= .6 ? .12 : level.responseRate >= .4 ? .35 : .7;
   const nearBest = scored.filter(item => scored[0].score - item.score <= margin);
-  return weightedChoice(nearBest, Math.max(.08, 1 - level.seeRate));
+  return weightedChoice(nearBest, Math.max(.08, 1 - level.responseRate));
 }
