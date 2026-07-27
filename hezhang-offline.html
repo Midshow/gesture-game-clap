@@ -31,7 +31,8 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
   .move-dock{padding:8px;margin-top:0;box-shadow:none}.dock-heading h3{font-size:18px}.dock-heading .eyebrow{display:none}.move-legend{margin:5px 0;font-size:8px;gap:10px}.move-grid{grid-template-columns:repeat(6,1fr);gap:3px}.move-card{min-height:51px;padding:5px 2px 3px}.move-card .move-icon{font-size:15px}.move-card strong{font-size:9px;margin:4px 0 0}.move-card small{display:none}.move-cost{width:14px;height:14px;right:2px;top:2px;font-size:7px}.dock-hint{display:none}.battle-log{display:none}
 }
 
-.first-turn-hint{display:flex;align-items:center;gap:10px;margin:8px 0 12px;padding:10px 13px;border:1px solid var(--line);background:#fff8e9;font-size:12px}.first-turn-hint span{color:var(--muted);flex:1}.first-turn-hint .text-button{white-space:nowrap}.battle-log details{border-bottom:1px solid var(--paper-2)}.battle-log details:last-child{border-bottom:0}.battle-log details summary{cursor:pointer;padding:10px 7px;list-style-position:inside}.battle-log details p{margin:0;padding:0 10px 12px;color:var(--muted);font-size:11px;line-height:1.65}.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px}.stat-card{border:1px solid var(--line);background:var(--white);padding:17px}.stat-card strong{display:block;font:700 28px Georgia,serif}.stat-card span{display:block;color:var(--muted);font-size:11px;margin-top:6px}.stat-card.wide{grid-column:span 3}.stat-card ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:12px;line-height:1.7}@media(max-width:600px){.topbar{position:sticky}.top-actions{gap:2px}.quiet-button{padding:8px 6px;font-size:11px}.quick-mode{max-width:76px;padding-right:4px}.first-turn-hint{font-size:10px;padding:7px 8px;gap:5px}.first-turn-hint b{white-space:nowrap}.game-view{padding-bottom:6px}.move-dock{position:sticky;bottom:0;background:var(--paper);z-index:10;border-bottom:0}.stats-grid{grid-template-columns:repeat(2,1fr)}.stat-card.wide{grid-column:span 2}.game-over-actions{display:grid;grid-template-columns:1fr 1fr}.game-over-actions .primary-button{grid-column:span 2}}
+.first-turn-hint{display:flex;align-items:center;gap:10px;margin:8px 0 12px;padding:10px 13px;border:1px solid var(--line);background:#fff8e9;font-size:12px}.first-turn-hint span{color:var(--muted);flex:1}.first-turn-hint .text-button{white-space:nowrap}.battle-log details{border-bottom:1px solid var(--paper-2)}.battle-log details:last-child{border-bottom:0}.battle-log details summary{cursor:pointer;padding:10px 7px;list-style-position:inside}.battle-log details p{margin:0;padding:0 10px 12px;color:var(--muted);font-size:11px;line-height:1.65}.skill-event{display:inline-block;margin:3px 4px 0 0;padding:2px 6px;border-radius:2px;background:#f4dfb7;color:var(--red-dark);font-weight:800}.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px}.stat-card{border:1px solid var(--line);background:var(--white);padding:17px}.stat-card strong{display:block;font:700 28px Georgia,serif}.stat-card span{display:block;color:var(--muted);font-size:11px;margin-top:6px}.stat-card.wide{grid-column:span 3}.stat-card ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:12px;line-height:1.7}@media(max-width:600px){.topbar{position:sticky}.top-actions{gap:2px}.quiet-button{padding:8px 6px;font-size:11px}.quick-mode{max-width:76px;padding-right:4px}.first-turn-hint{font-size:10px;padding:7px 8px;gap:5px}.first-turn-hint b{white-space:nowrap}.game-view{padding-bottom:6px}.move-dock{position:sticky;bottom:0;background:var(--paper);z-index:10;border-bottom:0}.battle-log{display:block!important;margin:7px 0 8px;padding:0 10px}.battle-log>summary{padding:10px 0;font-size:11px}.battle-log ol{max-height:38vh;overflow:auto;padding-left:15px}.stats-grid{grid-template-columns:repeat(2,1fr)}.stat-card.wide{grid-column:span 2}.game-over-actions{display:grid;grid-template-columns:1fr 1fr}.game-over-actions .primary-button{grid-column:span 2}}
+.dock-actions{display:flex;align-items:center;gap:12px}@media(max-width:600px){.dock-actions{gap:7px}.dock-actions .text-button{font-size:10px}}
 </style>
 </head>
 <body>
@@ -128,7 +129,7 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
       <section class="move-dock" aria-labelledby="moveTitle">
         <div class="dock-heading">
           <div><p class="eyebrow">你的回合</p><h3 id="moveTitle">选择招式</h3></div>
-          <button class="text-button" id="restartButton">重新开始</button>
+          <div class="dock-actions"><button class="text-button" id="battleLogButton">战斗记录</button><button class="text-button" id="restartButton">重新开始</button></div>
         </div>
         <div class="move-legend" aria-hidden="true">
           <span><i class="basic-dot"></i>蓄力 / 防御</span>
@@ -138,7 +139,7 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
         <p class="dock-hint" id="dockHint">能量不足的招式会自动锁定。</p>
       </section>
 
-      <details class="battle-log">
+      <details class="battle-log" id="battleLog">
         <summary>战斗记录 <span id="logCount">0</span></summary>
         <ol id="logList"></ol>
       </details>
@@ -725,6 +726,11 @@ function bindEvents() {
   $("rulesButton").addEventListener("click", () => $("rulesDialog").showModal());
   $("settingsButton").addEventListener("click", () => $("settingsDialog").showModal());
   $("restartButton").addEventListener("click", resetGame);
+  $("battleLogButton").addEventListener("click", () => {
+    const log = $("battleLog");
+    log.open = true;
+    log.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   $("playAgainButton").addEventListener("click", () => { $("gameOverDialog").close(); resetGame(); });
   $("backHomeButton").addEventListener("click", () => { $("gameOverDialog").close(); setView("home"); updateHomeStats(data.stats); });
   $("shareResultButton").addEventListener("click", shareResultCard);
@@ -780,7 +786,11 @@ function render() {
     data.settings.scissorsEnabled
   );
   $("logCount").textContent = state.log.length;
-  $("logList").innerHTML = state.log.map(item => `<li><details><summary><b>第${item.round}回合</b>　你 ${skillMove(item.player).name} · AI ${skillMove(item.ai).name}　— ${item.title}</summary><p>${item.detail}<br>能量：你 ${item.before.playerEnergy} → ${item.after.playerEnergy}，AI ${item.before.aiEnergy} → ${item.after.aiEnergy}${item.before.playerHp != null ? `<br>生命：你 ${item.before.playerHp} → ${item.after.playerHp}，AI ${item.before.aiHp} → ${item.after.aiHp}` : ""}</p></details></li>`).join("");
+  $("logList").innerHTML = state.log.map(item => {
+    const skillLine = item.skills ? `<br>技能：你「${item.skills.player}」· AI「${item.skills.ai}」` : "";
+    const events = item.skillEvents?.length ? `<br>${item.skillEvents.map(text => `<span class="skill-event">${text}</span>`).join("")}` : "";
+    return `<li><details><summary><b>第${item.round}回合</b>　你 ${skillMove(item.player).name} · AI ${skillMove(item.ai).name}　— ${item.title}</summary><p>${item.detail}${skillLine}${events}<br>能量：你 ${item.before.playerEnergy} → ${item.after.playerEnergy}，AI ${item.before.aiEnergy} → ${item.after.aiEnergy}${item.before.playerHp != null ? `<br>生命：你 ${item.before.playerHp} → ${item.after.playerHp}，AI ${item.before.aiHp} → ${item.after.aiHp}` : ""}</p></details></li>`;
+  }).join("");
   $("firstTurnHint").classList.toggle("hidden", data.firstTurnHintSeen || state.round > 1);
 }
 
@@ -826,14 +836,15 @@ function beat() {
 
 function settleRound(playerKey, aiKey) {
   const before = { playerEnergy: state.player.energy, aiEnergy: state.ai.energy, playerHp: data.settings.skillsEnabled ? formatNumber(state.player.hp) : null, aiHp: data.settings.skillsEnabled ? formatNumber(state.ai.hp) : null };
+  const skillEvents = [];
   const result = data.settings.skillsEnabled
     ? resolveWithSkills(playerKey, aiKey, data.settings.playerSkill, data.settings.aiSkill)
     : resolveCombat(playerKey, aiKey);
   state.pendingPlayerMove = playerKey;
   state.pendingAiMove = aiKey;
-  applyStartOfRoundSkills();
-  spendAndGain("player", playerKey);
-  spendAndGain("ai", aiKey);
+  skillEvents.push(...applyStartOfRoundSkills());
+  skillEvents.push(...spendAndGain("player", playerKey));
+  skillEvents.push(...spendAndGain("ai", aiKey));
   for (const key of [playerKey, aiKey]) {
     if (skillMove(key).type === "attack" && !state.weaponHistory.includes(key)) state.weaponHistory.push(key);
   }
@@ -844,7 +855,7 @@ function settleRound(playerKey, aiKey) {
     const damage = applySkillDamage(result, playerKey, aiKey);
     resultClass = damage.player > 0 && damage.ai === 0 ? "lose" : damage.ai > 0 && damage.player === 0 ? "win" : "draw";
     skillDetail = ` · 你 ${formatNumber(state.player.hp)} 生命，AI ${formatNumber(state.ai.hp)} 生命`;
-    applyEndOfRoundSkills(damage, playerKey, aiKey);
+    skillEvents.push(...applyEndOfRoundSkills(damage, playerKey, aiKey));
     const deaths = resolveDeaths();
     if (deaths.player || deaths.ai) {
       if (deaths.player && !deaths.ai) state.ai.score++;
@@ -872,7 +883,7 @@ function settleRound(playerKey, aiKey) {
   if (result.reset || result.playerHit || result.aiHit) state.player.energy = state.ai.energy = 0;
   state.history.push(playerKey);
   const after = { playerEnergy: formatNumber(state.player.energy), aiEnergy: formatNumber(state.ai.energy), playerHp: data.settings.skillsEnabled ? formatNumber(state.player.hp) : null, aiHp: data.settings.skillsEnabled ? formatNumber(state.ai.hp) : null };
-  state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title, detail: result.detail + skillDetail, before, after });
+  state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title, detail: result.detail + skillDetail, before, after, skillEvents, skills: data.settings.skillsEnabled ? { player: SKILLS[data.settings.playerSkill].name, ai: SKILLS[data.settings.aiSkill].name } : null });
   data.stats.moves[playerKey] = (data.stats.moves[playerKey] || 0) + 1;
   $("clash").className = `clash ${resultClass}`;
   $("clashKicker").textContent = resultClass === "win" ? "你赢下这回合" : resultClass === "lose" ? "AI 赢下这回合" : "本回合平局";
@@ -914,12 +925,15 @@ function renderSkillStatus() {
 }
 
 function applyStartOfRoundSkills() {
+  const events = [];
   for (const who of ["player", "ai"]) {
     const skill = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
     if (skill === "mother" && state[who].dealtDamageLastRound) {
       state[who].hp = Math.min(state[who].maxHp, state[who].hp + .5);
+      events.push(`${who === "player" ? "你" : "AI"}·母亲技能：回复0.5生命`);
     }
   }
+  return events;
 }
 
 function applySkillDamage(result, playerKey, aiKey) {
@@ -938,24 +952,27 @@ function applySkillDamage(result, playerKey, aiKey) {
 }
 
 function applyEndOfRoundSkills(damage, playerKey, aiKey) {
+  const events = [];
   const pairs = [
     { who: "player", other: "ai", skill: data.settings.playerSkill, dealt: damage.ai, taken: damage.player, move: playerKey },
     { who: "ai", other: "player", skill: data.settings.aiSkill, dealt: damage.player, taken: damage.ai, move: aiKey }
   ];
   for (const item of pairs) {
     const fighter = state[item.who];
-    if (item.skill === "generalist" && (item.dealt > 0 || item.taken > 0)) fighter.boostForge = true;
-    if (item.skill === "reaper" && item.dealt > 0) { fighter.hp += 1; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); fighter.attack += 1; }
-    if (item.skill === "secretKeeper" && item.dealt > 0) { fighter.hp += 1; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); }
+    const actor = item.who === "player" ? "你" : "AI";
+    if (item.skill === "generalist" && (item.dealt > 0 || item.taken > 0)) { fighter.boostForge = true; events.push(`${actor}·全能者技能：下次锻造强化`); }
+    if (item.skill === "reaper" && item.dealt > 0) { fighter.hp += 1; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); fighter.attack += 1; events.push(`${actor}·死神技能：生命与攻击成长`); }
+    if (item.skill === "secretKeeper" && item.dealt > 0) { fighter.hp += 1; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); events.push(`${actor}·守密人技能：生命成长`); }
     const opponentMove = item.who === "player" ? aiKey : playerKey;
     if (item.skill === "prisoner" && item.move === "flash" && item.taken === 0 && skillMove(opponentMove).type === "attack") {
       fighter.flashSuccesses++;
-      if (fighter.flashSuccesses % 2 === 0) fighter.attackDiscount++;
+      if (fighter.flashSuccesses % 2 === 0) { fighter.attackDiscount++; events.push(`${actor}·囚徒技能：攻击费用降低`); }
     }
-    if (item.skill === "storm" && item.move === "katana" && item.dealt === 0) fighter.stormDiscount = 1;
-    if (item.skill === "demon") fighter.attack += .5;
+    if (item.skill === "storm" && item.move === "katana" && item.dealt === 0) { fighter.stormDiscount = 1; events.push(`${actor}·风暴技能：下次武士刀减费`); }
+    if (item.skill === "demon") { fighter.attack += .5; events.push(`${actor}·魔王技能：攻击提升0.5`); }
     fighter.dealtDamageLastRound = item.dealt > 0;
   }
+  return events;
 }
 
 function resolveDeaths() {
@@ -1010,6 +1027,7 @@ function clearScoreFeedback() {
 }
 
 function spendAndGain(who, moveKey) {
+  const events = [];
   const move = skillMove(moveKey);
   const skill = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
   const cost = data.settings.skillsEnabled ? moveCost(moveKey, skill, state[who]) : move.cost;
@@ -1018,15 +1036,18 @@ function spendAndGain(who, moveKey) {
     const gain = data.settings.skillsEnabled && skill === "generalist" && state[who].boostForge ? 2 : move.gain;
     state[who].energy = Math.min(MAX_ENERGY, state[who].energy + gain);
     state[who].boostForge = false;
+    if (gain > move.gain) events.push(`${who === "player" ? "你" : "AI"}·全能者技能：锻造额外获得能量`);
   }
   if (data.settings.skillsEnabled && skill === "whiteTower" && whiteTowerRefunds(moveKey, state.weaponHistory)) {
     state[who].energy = Math.min(MAX_ENERGY, state[who].energy + cost);
+    events.push(`${who === "player" ? "你" : "AI"}·白塔技能：返还${formatNumber(cost)}能量`);
   }
   if (data.settings.skillsEnabled && skill === "guardian") {
-    if (moveKey === "guard") state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .25);
-    if (moveKey === "catch") state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .5);
+    if (moveKey === "guard") { state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .25); events.push(`${who === "player" ? "你" : "AI"}·守卫者技能：防返还0.25能量`); }
+    if (moveKey === "catch") { state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .5); events.push(`${who === "player" ? "你" : "AI"}·守卫者技能：接返还0.5能量`); }
   }
   if (data.settings.skillsEnabled && skill === "storm" && moveKey === "katana") state[who].stormDiscount = 0;
+  return events;
 }
 
 function endGame() {
@@ -1055,21 +1076,36 @@ function endGame() {
 async function shareResultCard() {
   const canvas = document.createElement("canvas");
   canvas.width = 1200;
-  canvas.height = 630;
+  canvas.height = 1600;
   const ctx = canvas.getContext("2d");
   const won = state.player.score > state.ai.score;
   ctx.fillStyle = "#f3eddf"; ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#d73e2d"; ctx.fillRect(0, 0, 26, canvas.height);
-  ctx.fillStyle = "#171412"; ctx.font = "bold 88px serif"; ctx.fillText("合掌", 100, 150);
-  ctx.fillStyle = "#746b60"; ctx.font = "32px sans-serif"; ctx.fillText("AI 练习战报", 105, 205);
-  ctx.fillStyle = won ? "#d73e2d" : "#324f67"; ctx.font = "bold 184px Georgia"; ctx.fillText(`${state.player.score} : ${state.ai.score}`, 100, 420);
-  ctx.fillStyle = "#171412"; ctx.font = "bold 46px serif"; ctx.fillText(won ? "本局获胜" : "本局惜败", 100, 510);
-  ctx.fillStyle = "#746b60"; ctx.font = "28px sans-serif";
+  ctx.fillStyle = "#171412"; ctx.font = "bold 84px serif"; ctx.fillText("合掌 · 对局战报", 80, 125);
   const mode = { standard: "标准", endless: "无尽", zen: "禅" }[data.settings.mode];
   const level = { easy: "简单", normal: "普通", hard: "困难", hell: "地狱" }[data.settings.difficulty];
-  ctx.fillText(`${mode}模式 · ${level}难度 · 共 ${state.round - 1} 回合`, 100, 565);
-  ctx.fillStyle = "#d49b32"; ctx.beginPath(); ctx.arc(1030, 275, 105, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#fffdf7"; ctx.font = "bold 94px serif"; ctx.fillText(won ? "胜" : "败", 972, 305);
+  ctx.fillStyle = "#746b60"; ctx.font = "30px sans-serif"; ctx.fillText(`${mode}模式 · ${level}难度 · ${state.round - 1}回合`, 85, 180);
+  ctx.fillStyle = won ? "#d73e2d" : "#324f67"; ctx.font = "bold 164px Georgia"; ctx.fillText(`${state.player.score} : ${state.ai.score}`, 80, 365);
+  ctx.fillStyle = "#171412"; ctx.font = "bold 46px serif"; ctx.fillText(won ? "本局获胜" : "本局惜败", 82, 430);
+  if (data.settings.skillsEnabled) {
+    ctx.fillStyle = "#fffdf7"; ctx.fillRect(80, 475, 1040, 105);
+    ctx.fillStyle = "#171412"; ctx.font = "bold 31px sans-serif"; ctx.fillText(`你：${SKILLS[data.settings.playerSkill].name}`, 110, 520); ctx.fillText(`AI：${SKILLS[data.settings.aiSkill].name}`, 620, 520);
+    ctx.fillStyle = "#746b60"; ctx.font = "24px sans-serif"; ctx.fillText(`${SKILLS[data.settings.playerSkill].hp}血 / ${SKILLS[data.settings.playerSkill].attack}攻`, 110, 557); ctx.fillText(`${SKILLS[data.settings.aiSkill].hp}血 / ${SKILLS[data.settings.aiSkill].attack}攻`, 620, 557);
+  }
+  ctx.fillStyle = "#171412"; ctx.font = "bold 38px serif"; ctx.fillText("回合复盘", 80, 650);
+  const rounds = [...state.log].reverse().slice(-7);
+  let y = 710;
+  for (const item of rounds) {
+    ctx.fillStyle = "#fffdf7"; ctx.fillRect(80, y - 35, 1040, item.skillEvents?.length ? 105 : 76);
+    ctx.fillStyle = "#171412"; ctx.font = "bold 27px sans-serif";
+    ctx.fillText(`第${item.round}回合  你·${skillMove(item.player).name}  /  AI·${skillMove(item.ai).name}`, 105, y);
+    ctx.fillStyle = "#746b60"; ctx.font = "22px sans-serif"; ctx.fillText(`${item.title}　能量 ${item.before.playerEnergy}→${item.after.playerEnergy} / ${item.before.aiEnergy}→${item.after.aiEnergy}`, 105, y + 35);
+    if (item.skillEvents?.length) { ctx.fillStyle = "#8e211b"; ctx.font = "bold 21px sans-serif"; ctx.fillText(item.skillEvents.join("；").slice(0, 58), 105, y + 68); y += 112; }
+    else y += 83;
+  }
+  if (state.log.length > rounds.length) { ctx.fillStyle = "#746b60"; ctx.font = "22px sans-serif"; ctx.fillText(`仅展示最近 ${rounds.length} 回合，完整记录请在游戏内查看。`, 85, y + 5); }
+  const eventCount = state.log.reduce((sum, item) => sum + (item.skillEvents?.length || 0), 0);
+  ctx.fillStyle = "#171412"; ctx.font = "bold 30px sans-serif"; ctx.fillText(`技能触发 ${eventCount} 次　·　常用招式 ${topMoveName()}`, 80, 1530);
   const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
   if (!blob) return showToast("战报生成失败，请重试");
   const file = new File([blob], "合掌-战报.png", { type: "image/png" });
@@ -1078,6 +1114,13 @@ async function shareResultCard() {
   }
   const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "合掌-战报.png"; link.click(); URL.revokeObjectURL(link.href);
   showToast("战报图片已保存");
+}
+
+function topMoveName() {
+  const counts = {};
+  state.log.forEach(item => { counts[item.player] = (counts[item.player] || 0) + 1; });
+  const key = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0];
+  return key ? skillMove(key).name : "—";
 }
 
 function startTimer() {
