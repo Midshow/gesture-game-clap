@@ -31,7 +31,8 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
   .move-dock{padding:8px;margin-top:0;box-shadow:none}.dock-heading h3{font-size:18px}.dock-heading .eyebrow{display:none}.move-legend{margin:5px 0;font-size:8px;gap:10px}.move-grid{grid-template-columns:repeat(6,1fr);gap:3px}.move-card{min-height:51px;padding:5px 2px 3px}.move-card .move-icon{font-size:15px}.move-card strong{font-size:9px;margin:4px 0 0}.move-card small{display:none}.move-cost{width:14px;height:14px;right:2px;top:2px;font-size:7px}.dock-hint{display:none}.battle-log{display:none}
 }
 
-  </style>
+.first-turn-hint{display:flex;align-items:center;gap:10px;margin:8px 0 12px;padding:10px 13px;border:1px solid var(--line);background:#fff8e9;font-size:12px}.first-turn-hint span{color:var(--muted);flex:1}.first-turn-hint .text-button{white-space:nowrap}.battle-log details{border-bottom:1px solid var(--paper-2)}.battle-log details:last-child{border-bottom:0}.battle-log details summary{cursor:pointer;padding:10px 7px;list-style-position:inside}.battle-log details p{margin:0;padding:0 10px 12px;color:var(--muted);font-size:11px;line-height:1.65}.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px}.stat-card{border:1px solid var(--line);background:var(--white);padding:17px}.stat-card strong{display:block;font:700 28px Georgia,serif}.stat-card span{display:block;color:var(--muted);font-size:11px;margin-top:6px}.stat-card.wide{grid-column:span 3}.stat-card ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:12px;line-height:1.7}@media(max-width:600px){.topbar{position:sticky}.top-actions{gap:2px}.quiet-button{padding:8px 6px;font-size:11px}.quick-mode{max-width:76px;padding-right:4px}.first-turn-hint{font-size:10px;padding:7px 8px;gap:5px}.first-turn-hint b{white-space:nowrap}.game-view{padding-bottom:6px}.move-dock{position:sticky;bottom:0;background:var(--paper);z-index:10;border-bottom:0}.stats-grid{grid-template-columns:repeat(2,1fr)}.stat-card.wide{grid-column:span 2}.game-over-actions{display:grid;grid-template-columns:1fr 1fr}.game-over-actions .primary-button{grid-column:span 2}}
+</style>
 </head>
 <body>
   <header class="topbar">
@@ -45,6 +46,7 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
         <option value="endless">无尽</option>
         <option value="zen">禅</option>
       </select>
+      <button class="quiet-button" id="statsButton">战绩</button>
       <button class="quiet-button" id="rulesButton">规则</button>
       <button class="quiet-button" id="settingsButton">设置</button>
     </nav>
@@ -94,6 +96,9 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
         </div>
       </div>
       <div class="score-feedback" id="scoreFeedback" role="status" aria-live="polite"></div>
+      <aside class="first-turn-hint hidden" id="firstTurnHint" aria-label="对局提示">
+        <b>第一局小提示</b><span>能量在双方头像下方；可用招式亮起；每回合结果会显示在中间。</span><button class="text-button" id="dismissFirstHint">知道了</button>
+      </aside>
 
       <div class="duel-board">
         <article class="fighter ai" id="aiPanel">
@@ -179,7 +184,11 @@ dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(-
   <dialog id="gameOverDialog" class="game-over-dialog">
     <p class="eyebrow">本局结束</p><div class="result-seal" id="resultSeal">胜</div>
     <h2 id="gameOverTitle">漂亮！</h2><p id="gameOverText"></p>
-    <div class="game-over-actions"><button class="primary-button" id="playAgainButton">再来一局</button><button class="secondary-button" id="backHomeButton">返回首页</button></div>
+    <div class="game-over-actions"><button class="primary-button" id="playAgainButton">再来一局</button><button class="secondary-button" id="shareResultButton">保存战报</button><button class="secondary-button" id="backHomeButton">返回首页</button></div>
+  </dialog>
+  <dialog id="statsDialog">
+    <div class="dialog-head"><div><p class="eyebrow">仅保存在此设备</p><h2>练习战绩</h2></div><button class="icon-button" data-close="statsDialog" aria-label="关闭">×</button></div>
+    <div class="stats-grid" id="statsContent"></div>
   </dialog>
   <script>
 
@@ -569,8 +578,9 @@ function chooseReactiveMove(aiMoves, playerMove, context, level) {
 const KEY = "hezhang-game-v2";
 const defaults = {
   settings: { mode: "standard", difficulty: "normal", winScore: 3, timerEnabled: false, timerSeconds: 15, energyVisible: true, skillsEnabled: false, playerSkill: "generalist", aiSkill: "generalist", scissorsEnabled: false, sound: true },
-  stats: { games: 0, wins: 0, losses: 0, bestStreak: 0, currentStreak: 0 },
-  tutorialSeen: false
+  stats: { games: 0, wins: 0, losses: 0, bestStreak: 0, currentStreak: 0, moves: {}, byDifficulty: {} },
+  tutorialSeen: false,
+  firstTurnHintSeen: false
 };
 
 function loadData() {
@@ -649,6 +659,16 @@ function updateHomeStats(stats) {
   $("homeWinRate").textContent = stats.games ? `${Math.round(stats.wins / stats.games * 100)}%` : "—";
 }
 
+function renderStats() {
+  const stats = data.stats;
+  const rate = stats.games ? `${Math.round(stats.wins / stats.games * 100)}%` : "—";
+  const moveEntries = Object.entries(stats.moves || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const difficultyEntries = Object.entries(stats.byDifficulty || {});
+  const moves = moveEntries.length ? `<ul>${moveEntries.map(([key, count]) => `<li>${skillMove(key)?.name || key}：${count} 次</li>`).join("")}</ul>` : "<span>完成一局后开始记录</span>";
+  const difficulty = difficultyEntries.length ? `<ul>${difficultyEntries.map(([key, item]) => `<li>${({ easy: "简单", normal: "普通", hard: "困难", hell: "地狱" })[key] || key}：${item.wins || 0} 胜 / ${item.games} 局</li>`).join("")}</ul>` : "<span>完成一局后开始记录</span>";
+  $("statsContent").innerHTML = `<article class="stat-card"><strong>${stats.games}</strong><span>完成对局</span></article><article class="stat-card"><strong>${rate}</strong><span>总胜率</span></article><article class="stat-card"><strong>${stats.bestStreak}</strong><span>最高连胜</span></article><article class="stat-card wide"><b>常用招式</b>${moves}</article><article class="stat-card wide"><b>各难度战绩</b>${difficulty}</article>`;
+}
+
 function setView(name) {
   document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
   $(`${name}View`).classList.add("active");
@@ -701,11 +721,14 @@ function bindEvents() {
   document.querySelectorAll('[data-action="start-game"]').forEach(button => button.addEventListener("click", startGame));
   document.querySelectorAll('[data-action="start-tutorial"]').forEach(button => button.addEventListener("click", openTutorial));
   $("homeButton").addEventListener("click", () => { stopTimer(); setView("home"); updateHomeStats(data.stats); });
+  $("statsButton").addEventListener("click", () => { renderStats(); $("statsDialog").showModal(); });
   $("rulesButton").addEventListener("click", () => $("rulesDialog").showModal());
   $("settingsButton").addEventListener("click", () => $("settingsDialog").showModal());
   $("restartButton").addEventListener("click", resetGame);
   $("playAgainButton").addEventListener("click", () => { $("gameOverDialog").close(); resetGame(); });
   $("backHomeButton").addEventListener("click", () => { $("gameOverDialog").close(); setView("home"); updateHomeStats(data.stats); });
+  $("shareResultButton").addEventListener("click", shareResultCard);
+  $("dismissFirstHint").addEventListener("click", () => { data.firstTurnHintSeen = true; saveData(data); $("firstTurnHint").classList.add("hidden"); });
   $("tutorialNext").addEventListener("click", nextTutorial);
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => $(button.dataset.close).close()));
   $("settingsDialog").querySelector("form").addEventListener("submit", saveSettings);
@@ -757,7 +780,8 @@ function render() {
     data.settings.scissorsEnabled
   );
   $("logCount").textContent = state.log.length;
-  $("logList").innerHTML = state.log.map(item => `<li><b>第${item.round}回合</b>　你 ${skillMove(item.player).name} · AI ${skillMove(item.ai).name}　— ${item.title}</li>`).join("");
+  $("logList").innerHTML = state.log.map(item => `<li><details><summary><b>第${item.round}回合</b>　你 ${skillMove(item.player).name} · AI ${skillMove(item.ai).name}　— ${item.title}</summary><p>${item.detail}<br>能量：你 ${item.before.playerEnergy} → ${item.after.playerEnergy}，AI ${item.before.aiEnergy} → ${item.after.aiEnergy}${item.before.playerHp != null ? `<br>生命：你 ${item.before.playerHp} → ${item.after.playerHp}，AI ${item.before.aiHp} → ${item.after.aiHp}` : ""}</p></details></li>`).join("");
+  $("firstTurnHint").classList.toggle("hidden", data.firstTurnHintSeen || state.round > 1);
 }
 
 async function selectMove(playerKey) {
@@ -801,6 +825,7 @@ function beat() {
 }
 
 function settleRound(playerKey, aiKey) {
+  const before = { playerEnergy: state.player.energy, aiEnergy: state.ai.energy, playerHp: data.settings.skillsEnabled ? formatNumber(state.player.hp) : null, aiHp: data.settings.skillsEnabled ? formatNumber(state.ai.hp) : null };
   const result = data.settings.skillsEnabled
     ? resolveWithSkills(playerKey, aiKey, data.settings.playerSkill, data.settings.aiSkill)
     : resolveCombat(playerKey, aiKey);
@@ -846,7 +871,9 @@ function settleRound(playerKey, aiKey) {
   showScoreFeedback(state.player.score - scoreBefore.player, state.ai.score - scoreBefore.ai);
   if (result.reset || result.playerHit || result.aiHit) state.player.energy = state.ai.energy = 0;
   state.history.push(playerKey);
-  state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title });
+  const after = { playerEnergy: formatNumber(state.player.energy), aiEnergy: formatNumber(state.ai.energy), playerHp: data.settings.skillsEnabled ? formatNumber(state.player.hp) : null, aiHp: data.settings.skillsEnabled ? formatNumber(state.ai.hp) : null };
+  state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title, detail: result.detail + skillDetail, before, after });
+  data.stats.moves[playerKey] = (data.stats.moves[playerKey] || 0) + 1;
   $("clash").className = `clash ${resultClass}`;
   $("clashKicker").textContent = resultClass === "win" ? "你赢下这回合" : resultClass === "lose" ? "AI 赢下这回合" : "本回合平局";
   $("clashTitle").textContent = result.title;
@@ -1014,11 +1041,43 @@ function endGame() {
     data.stats.losses++;
     data.stats.currentStreak = 0;
   }
+  const difficulty = data.settings.difficulty;
+  data.stats.byDifficulty[difficulty] ||= { games: 0, wins: 0 };
+  data.stats.byDifficulty[difficulty].games++;
+  if (won) data.stats.byDifficulty[difficulty].wins++;
   saveData(data);
   $("resultSeal").textContent = won ? "胜" : "败";
   $("gameOverTitle").textContent = won ? "漂亮！" : "再来一次";
   $("gameOverText").textContent = `${state.player.score} : ${state.ai.score} · ${won ? `当前 ${data.stats.currentStreak} 连胜` : "AI 抓住了你的节奏"}`;
   $("gameOverDialog").showModal();
+}
+
+async function shareResultCard() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1200;
+  canvas.height = 630;
+  const ctx = canvas.getContext("2d");
+  const won = state.player.score > state.ai.score;
+  ctx.fillStyle = "#f3eddf"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#d73e2d"; ctx.fillRect(0, 0, 26, canvas.height);
+  ctx.fillStyle = "#171412"; ctx.font = "bold 88px serif"; ctx.fillText("合掌", 100, 150);
+  ctx.fillStyle = "#746b60"; ctx.font = "32px sans-serif"; ctx.fillText("AI 练习战报", 105, 205);
+  ctx.fillStyle = won ? "#d73e2d" : "#324f67"; ctx.font = "bold 184px Georgia"; ctx.fillText(`${state.player.score} : ${state.ai.score}`, 100, 420);
+  ctx.fillStyle = "#171412"; ctx.font = "bold 46px serif"; ctx.fillText(won ? "本局获胜" : "本局惜败", 100, 510);
+  ctx.fillStyle = "#746b60"; ctx.font = "28px sans-serif";
+  const mode = { standard: "标准", endless: "无尽", zen: "禅" }[data.settings.mode];
+  const level = { easy: "简单", normal: "普通", hard: "困难", hell: "地狱" }[data.settings.difficulty];
+  ctx.fillText(`${mode}模式 · ${level}难度 · 共 ${state.round - 1} 回合`, 100, 565);
+  ctx.fillStyle = "#d49b32"; ctx.beginPath(); ctx.arc(1030, 275, 105, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#fffdf7"; ctx.font = "bold 94px serif"; ctx.fillText(won ? "胜" : "败", 972, 305);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+  if (!blob) return showToast("战报生成失败，请重试");
+  const file = new File([blob], "合掌-战报.png", { type: "image/png" });
+  if (navigator.share && navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ title: "合掌战报", text: "我的合掌 AI 练习战报", files: [file] }); return; } catch (error) { if (error.name === "AbortError") return; }
+  }
+  const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "合掌-战报.png"; link.click(); URL.revokeObjectURL(link.href);
+  showToast("战报图片已保存");
 }
 
 function startTimer() {
