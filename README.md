@@ -114,7 +114,7 @@ When enabled, both sides gain **HP and Attack power**, along with a character sk
 | **v2.5.0** | 快照 | 🆕 多人对战 + 全技能系统 |
 | **v2.5.1** | 快照 | 多人对战规则修订 |
 | **v2.5.2** | 快照 | 程序优化，规则同 v2.5.1 |
-
+| **v2.5.3** | 快照 | bug修复，UI优化 |
 ---
 
 ## 🗂️ 仓库结构 · Repository Structure
