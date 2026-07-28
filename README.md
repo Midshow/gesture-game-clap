@@ -1,157 +1,123 @@
-# 🖐️ 合掌 · The Clap
+# 合掌网页版
 
-**合掌（The Clap）** 是一款源于中国重点高中的回合制博弈游戏，围绕 **能量管理与出招博弈** 展开。每回合双方同时选择行动，锤炼玩家的 **预判力、资源规划与心理博弈**。
+把面对面的“合掌”游戏做成一个可以直接分享、离线运行的网页游戏。
 
-**The Clap** is a turn-based strategy game originating from a leading high school in China. Centered on **energy management and move prediction**, players choose their actions simultaneously each round, honing **foresight, resource planning, and psychological gameplay**.
+玩家可以与 AI 进行基础合掌或技能版对战，也可以在多人模式中和多名 AI 组队、混战。正式版本采用单 HTML 文件分发，不需要安装软件、注册账号或连接服务器。
 
----
+## 立即游玩
 
-## 📖 规则 · Rules
+当前正式版本：**v2.5.3**
 
-### 基础规则 · Core Mechanics
+1. 下载 [`合掌网页版v2.5.3.html`](合掌网页版-正式版本存档/合掌网页版v2.5.3.html)。
+2. 用 Chrome、Edge、Safari 等现代浏览器打开。
+3. 在首页选择双人对战或多人比赛。
 
-每回合，玩家和对手同时选择一个行动。能量（上限 **6 格**）通过锻造积累，用于出招攻击。
+手机用户可以通过聊天软件接收该文件，保存到本地后使用浏览器打开。游戏数据和设置保存在当前设备的浏览器中。
 
-Each round, both players select an action simultaneously. Energy (max **6 bars**) is accumulated through forging and spent on attacks.
+> 正式版本是完整的单 HTML 文件。游玩时不需要运行本地服务器，也不依赖仓库中的其他文件。
 
-> **攻击等级 = 消耗能量数**。同级攻击互相抵刀，双方均不受伤。高级攻击压制低级。
->
-> **Attack level = Energy spent**. Same-level attacks clash — neither side takes damage. Higher level overpowers lower level.
+## 游戏内容
 
-### 行动总览 · Action Overview
+### 双人对战
 
-| 行动 Action | 图标 | 消耗 | 效果 Effect |
-|------------|------|------|------------|
-| **锻造** Forge | 🔨 | 0 | +1 能量，无防御 / Gain 1 energy, no defense |
-| **防** Guard | 🛡️ | 0 | 挡住 1–2 级攻击 / Blocks level 1–2 attacks |
-| **接** Catch | 🤲 | 0 | 挡住 2–3 级攻击，双方能量归零 / Blocks level 2–3, resets both energy |
-| **闪** Flash | 💨 | 2 | 挡住 2–5 级攻击，双方能量归零 / Blocks level 2–5, resets both energy |
-| **小刀** Knife | 🔪 | 1 | 1 级攻击 / Level 1 attack |
-| **武士刀** Katana | ⚔️ | 2 | 2 级攻击 / Level 2 attack |
-| **手里剑** Shuriken | 🥷 | 3 | 3 级攻击 / Level 3 attack |
-| **苦无** Kunai | 🗡️ | 4 | 4 级攻击 / Level 4 attack |
-| **龙牙** Dragon Fang | 🐉 | 5 | 5 级攻击 / Level 5 attack |
-| **虚无** Void | 👻 | 6 | 6 级攻击，不可防御 / Level 6, undefendable |
-| **剪刀** Scissors | ✂️ | 1 | 特殊攻击（选修模式）/ Special attack (optional mode) |
+- 1 位玩家对战 AI。
+- 支持标准、无尽等对局设置。
+- 简单、普通、困难、地狱四档 AI 难度。
+- 可自由开启或关闭技能。
+- 可分别选择玩家和 AI 的角色技能。
+- 支持可选的剪刀模式。
+- 支持 0～15 秒的回合计时。
+- 提供战斗记录、战绩统计和战报保存。
 
-### 交互规则 · Interaction Rules
+### 多人比赛
 
-| 场景 Scenario | 结果 Outcome |
-|--------------|-------------|
-| 攻击 vs 锻造 | 攻击命中 / Attack hits |
-| 同等级攻击 | 抵刀，双方不伤 / Clash, no damage |
-| 高级攻击 vs 低级攻击 | 高级压制 / Higher level wins |
-| 防（1–2）vs 对应攻击 | 防住 / Blocked |
-| 接（2–3）vs 对应攻击 | 接住 + 能量归零 / Caught + energy reset |
-| 闪（2–5）vs 对应攻击 | 闪过 + 能量归零 / Dodged + energy reset |
-| 虚无 vs 任何防御 | 不可防御 / Undefendable |
+- 1 位真人玩家与多位 AI 共同参赛。
+- 队伍数量支持 2～4 队，每队支持 1～4 人。
+- 根据队伍和人数自动形成单挑、组队、多队或混战局面。
+- 可为每一位 AI 单独选择技能，也可设为随机。
+- 支持“指定目标队伍”和“全体共同判刀”两种判刀范围。
+- 实现多人比赛中的判刀、抵刀、主动承伤、淘汰及 AI 自动续赛。
+- 玩家被淘汰后，比赛仍会由存活 AI 继续结算至产生结果。
 
----
+多人模式不启用剪刀。
 
-## ⚙️ 游戏模式 · Game Modes
+## 规则提示
 
-| 模式 Mode | 说明 Description |
-|----------|----------------|
-| **标准 Standard** | 先达到目标胜场（1/3/5/7）者胜 / First to target wins |
-| **无尽 Endless** | 持续记录连胜 / Continuous streak tracking |
-| **禅 Zen** | 隐藏能量的无尽模式 / Endless with hidden energy |
+- 锻造用于积累能量，攻击会消耗相应能量。
+- 攻击等级与消耗能量相关；同级攻击可能抵刀，高级攻击优先判定。
+- “虚无”的 6 级表示攻击等级和能量消耗，并不表示造成 6 点伤害。实际伤害取决于角色攻击力。
+- 多人比赛中，虚无仍按判刀规则选择承伤者，并非全员同时受到伤害。
+- 游戏会区分“攻击打出”“攻击命中”和“实际造成伤害”。护盾、龙、秘偶、怪兽等效果可以防止伤害，但不会撤销已经发生的命中。
 
-### AI 难度 · AI Difficulty
+完整招式、技能说明及当前可用操作可以在游戏内的规则页面查看。技能规则以仓库中的原始规则文档和游戏内说明为准。
 
-| 难度 | 策略 |
-|------|------|
-| 简单 Easy | 基础策略 / Basic strategy |
-| 普通 Normal | 稳健应对 / Balanced responses |
-| 困难 Hard | 深度预判 / Deep prediction |
-| 地狱 Hell | 极限博弈 / Maximum gameplay |
+## AI
 
----
+AI 会根据以下信息进行决策：
 
-## ⚡ 技能系统 · Skill System
+- 双方当前能量、生命和可用招式；
+- 最近的出招记录与重复倾向；
+- 攻防收益、风险和后续局面；
+- 当前角色技能、主动技能次数和场上效果；
+- 多人比赛中的阵营、目标、判刀和抵刀风险。
 
-启用后，双方拥有 **生命值（HP）与攻击力（Attack）**，并携带一个角色技能。每个角色提供独特的战术维度。
+不同难度会采用不同的分析深度、风险偏好和应对强度。AI 仍包含一定随机性，因此相同局面不一定产生相同行动。
 
-When enabled, both sides gain **HP and Attack power**, along with a character skill. Each character offers a unique tactical dimension.
+## 仓库结构
 
-| 技能 Skill | 生命 HP | 攻击 ATK | 特性 Trait |
-|-----------|---------|---------|-----------|
-| 通识者 Generalist | 2 | 1 | 受伤后下次锻造 +1 能量 / Next forge gains +1 after damage |
-| 白塔 White Tower | 2 | 1 | 用新武器时返还能量 / New weapon refunds cost |
-| 死神 Reaper | 1 | 1 | 造成伤害后 +1 HP & ATK / +1 HP & ATK on dealing damage |
-| 暴君 Tyrant | 3 | 1 | HP≤1 时伤害 ×10 / Damage ×10 when HP≤1 |
-| 母亲 Mother | 1 | 1 | 上回合造成伤害则恢复 0.5 HP / Heal 0.5 if dealt damage last turn |
-| 猎人 Hunter | 2 | 1 | 死亡时造成 1 点真实伤害 / Deals 1 true damage on death |
-| 战士 Warrior | 2 | 1 | 武士刀可突破防（伤害 0.5）/ Katana pierces Guard (0.5 dmg) |
-| 刺客 Assassin | 2 | 1 | 首刀小刀 +0.5；防可挡手里剑 / First Knife +0.5; Guard blocks Shuriken |
-| 窥秘人 Secret Keeper | 2 | 1 | 龙牙/虚无消费 -1；对手受伤时回血 1 / Dragon Fang/Void cost -1; heal 1 on enemy hit |
-| 囚徒 Prisoner | 2 | 1 | 闪免费；攻击消费 +1 但每次成功减消耗 / Flash free; attacks cost +1 but reduce with dodges |
-| 恶魔 Demon | 3 | 0 | 每回合 ATK +0.5 / +0.5 ATK each turn |
-| 太阳 Sun | 2 | 1 | 所有伤害为真实伤害 / All damage is true damage |
-| 守卫 Guardian | 2 | 1 | 不能锻造；防获得 0.25 能量，接获得 0.5 / Cannot forge; Guard gives 0.25 energy, Catch gives 0.5 |
-| 月亮 Moon | 3 | 1 | 闪变为防反：成功时按对手 ATK 反击 / Flash becomes counter: reflects ATK on success |
-| 壁垒 Bulwark | 2 | 1 | 消耗 1 能量用大盾，挡除虚无外所有攻击 / Spend 1 energy on Big Shield, blocks all but Void |
-| 风暴 Storm | 2 | 1 | 武士刀变为 1.5 级风暴之刃；未命中下次消费 -1 / Katana becomes level-1.5 Storm Blade |
+```text
+合掌网页版-正式版本存档/
+  合掌网页版v2.5.3.html   当前推荐的单文件正式版
 
----
+合掌技能版（第一版）_*.docx
+合掌技能版（第二版）_*.docx   技能规则原始文档
 
-## 🗺️ 游戏流程 · How to Play
+index.html
+styles.css
+js/
+service-worker.js              早期模块化/PWA版本
 
-1. **锻造攒能** → 选择"锻造"获取能量
-2. **出招博弈** → 消耗能量出招攻击，同时猜对手的行动
-3. **防御抉择** → 根据对手可能的攻击等级选择防/接/闪
-4. **攻防循环** → 重复至一方达到目标胜场
-
-> 提示："防"免费但仅挡 1–2 级；"接"免费但挡 2–3 级 + 重置能量；
-> "闪"消耗 2 能量但挡 2–5 级；虚无无解。
-
----
-
-## 📦 版本历史 · Version History
-
-| 版本 | 类型 | 说明 |
-|------|------|------|
-| **v2.4** | 正式版 | 双人对战，含第二版部分技能 |
-| **v2.5.0** | 快照 | 🆕 多人对战 + 全技能系统 |
-| **v2.5.1** | 快照 | 多人对战规则修订 |
-| **v2.5.2** | 快照 | 程序优化，规则同 v2.5.1 |
-| **v2.5.3** | 快照 | bug修复，UI优化 |
----
-
-## 🗂️ 仓库结构 · Repository Structure
-
-```
-gesture-game-clap/
-├── README.md
-├── 合掌技能版（第二版）_1784612320126.docx   ← 技能系统完整规则
-├── 合掌游戏-速成攻略-终稿 (1).docx           ← 新手速成指南
-├── 合掌网页版v2.4.html                       ← v2.4 正式版
-├── 合掌网页版v2.5.0.html                     ← v2.5.0 快照
-├── 合掌网页版v2.5.1.html                     ← v2.5.1 快照
-└── 合掌网页版v2.5.2.html                     ← v2.5.2 快照（最新）
+tests/                         规则与结算测试
+tools/                         项目辅助工具
 ```
 
----
+根目录中的模块化版本用于开发和历史保留。普通玩家应优先下载正式版本存档中的最新单 HTML 文件。
 
-## 🚀 快速开始 · Quick Start
+## 本地开发
 
-1. 下载任一 `.html` 文件
-2. 在浏览器中打开（Chrome / Edge / Firefox）
-3. 开始游戏！
+如果需要查看早期模块化版本，可以在仓库根目录启动静态服务器：
 
-无需安装、无需编译、无需服务器。
+```bash
+python -m http.server 8080
+```
 
-No installation, no compilation, no server required.
+然后访问：
 
----
+```text
+http://localhost:8080
+```
 
-## 📝 许可 · License
+规则测试可使用：
 
-开源项目，仅供学习与交流使用。
+```bash
+node tests/combat.test.mjs
+```
 
-Open-source project for educational and recreational use.
+单 HTML 正式版可直接打开，不需要上述步骤。
 
----
+## 反馈问题
 
-> **合掌——拍两下，见真招。**
->
-> **The Clap — a couple of claps, and the real moves show.**
+如果发现规则或结算异常，请在 [Issues](https://github.com/Midshow/gesture-game-clap/issues) 中提交反馈，并尽量附上：
+
+- 游戏版本；
+- 双人或多人模式；
+- 双方或各角色技能；
+- 出问题前后的招式和能量；
+- 战斗记录或截图；
+- 预期结果与实际结果。
+
+这些信息可以帮助快速复现判刀、技能优先级和 AI 决策问题。
+
+## 项目地址
+
+[github.com/Midshow/gesture-game-clap](https://github.com/Midshow/gesture-game-clap)
