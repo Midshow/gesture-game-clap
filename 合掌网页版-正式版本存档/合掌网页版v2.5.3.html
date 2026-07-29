@@ -576,6 +576,7 @@ function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy, context) {
   const result = context.skillsEnabled
     ? resolveWithSkills(playerKey, aiKey, context.playerSkill, context.aiSkill)
     : resolveCombat(playerKey, aiKey);
+  const roundReset = context.skillsEnabled ? result.reset : basicRoundShouldReset(result);
   let score = 0;
   if (context.skillsEnabled) {
     const damage = previewSkillDamage(
@@ -591,7 +592,7 @@ function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy, context) {
   } else if (result.playerHit && !result.aiHit) score += 12;
   else if (result.aiHit && !result.playerHit) score -= 14;
   else score += .8;
-  if (result.reset) score += aiEnergy < playerEnergy ? 2.2 : -.8;
+  if (roundReset) score += aiEnergy < playerEnergy ? 2.2 : -.8;
   score += projectedEnergy("ai", aiEnergy, aiKey, context, result.aiHit) * .32;
   score -= projectedEnergy("player", playerEnergy, playerKey, context, result.playerHit) * .14;
   if (aiKey === "forge" && playerEnergy > 0) score -= .45;
@@ -632,6 +633,10 @@ function skillStrategyValue(aiKey, playerKey, damage, context) {
   return value;
 }
 
+function basicRoundShouldReset(result) {
+  return Boolean(result?.reset || result?.playerHit || result?.aiHit);
+}
+
 function basicEnergyAfterRound(energy, moveKey, wasHit = false, reset = false) {
   if (reset) return 0;
   const move = skillMove(moveKey);
@@ -643,6 +648,9 @@ function runBasicEnergyChecks() {
   const failures = [];
   if (basicEnergyAfterRound(4, "catch", false, true) !== 0) failures.push("接住重开未清零");
   if (basicEnergyAfterRound(5, "flash", false, true) !== 0) failures.push("闪掉重开未清零");
+  if (!basicRoundShouldReset({ playerHit: true, aiHit: false, reset: false })) failures.push("玩家受伤未触发重开");
+  if (!basicRoundShouldReset({ playerHit: false, aiHit: true, reset: false })) failures.push("AI受伤未触发重开");
+  if (basicEnergyAfterRound(5, "knife", false, basicRoundShouldReset({ playerHit: false, aiHit: true, reset: false })) !== 0) failures.push("攻击命中后双方能量未清零");
   if (basicEnergyAfterRound(2, "forge", true, false) !== 2) failures.push("锻造被命中仍加能量");
   if (basicEnergyAfterRound(2, "forge", false, false) !== 3) failures.push("安全锻造未加能量");
   if (failures.length) console.warn("Basic energy self-check:", failures.join("、"));
@@ -687,6 +695,7 @@ function projectedRoundContext(playerKey, aiKey, context) {
     weaponHistory: [...(context.weaponHistory || [])]
   };
   const result = context.skillsEnabled ? resolveWithSkills(playerKey, aiKey, context.playerSkill, context.aiSkill) : resolveCombat(playerKey, aiKey);
+  const roundReset = context.skillsEnabled ? result.reset : basicRoundShouldReset(result);
   next.playerEnergy = projectedEnergy("player", context.playerEnergy, playerKey, context, result.playerHit);
   next.aiEnergy = projectedEnergy("ai", context.aiEnergy, aiKey, context, result.aiHit);
   if (context.skillsEnabled) {
@@ -708,9 +717,9 @@ function projectedRoundContext(playerKey, aiKey, context) {
     if (result.playerHit && !result.aiHit) next.aiScore = (context.aiScore || 0) + 1;
     if (result.aiHit && !result.playerHit) next.playerScore = (context.playerScore || 0) + 1;
   }
-  if (result.reset) next.playerEnergy = next.aiEnergy = 0;
+  if (roundReset) next.playerEnergy = next.aiEnergy = 0;
   for (const key of [playerKey, aiKey]) if (skillMove(key).type === "attack" && !next.weaponHistory.includes(key)) next.weaponHistory.push(key);
-  next.afterReset = Boolean(result.reset);
+  next.afterReset = Boolean(roundReset);
   return next;
 }
 
@@ -1205,6 +1214,7 @@ async function settleRound(playerKey, aiKey) {
   const result = data.settings.skillsEnabled
     ? resolveWithSkills(playerKey, aiKey, data.settings.playerSkill, data.settings.aiSkill)
     : resolveCombat(playerKey, aiKey);
+  const roundReset = data.settings.skillsEnabled ? result.reset : basicRoundShouldReset(result);
   state.pendingPlayerMove = playerKey;
   state.pendingAiMove = aiKey;
   state.player.observerCatch = false;
@@ -1215,10 +1225,11 @@ async function settleRound(playerKey, aiKey) {
     skillEvents.push(...spendAndGain("ai", aiKey, !result.aiHit));
     if (result.reset) state.player.energy = state.ai.energy = 0;
   } else {
-    state.player.energy = basicEnergyAfterRound(state.player.energy, playerKey, result.playerHit, result.reset);
-    state.ai.energy = basicEnergyAfterRound(state.ai.energy, aiKey, result.aiHit, result.reset);
+    state.player.energy = basicEnergyAfterRound(state.player.energy, playerKey, result.playerHit, roundReset);
+    state.ai.energy = basicEnergyAfterRound(state.ai.energy, aiKey, result.aiHit, roundReset);
     if (playerKey === "forge" && result.playerHit) skillEvents.push("你锻造时被攻击命中，未获得能量");
     if (aiKey === "forge" && result.aiHit) skillEvents.push("AI锻造时被攻击命中，未获得能量");
+    if ((result.playerHit || result.aiHit) && roundReset) skillEvents.push("无技能规则：攻击命中后立即重开，双方能量清零");
   }
   for (const key of [playerKey, aiKey]) {
     if (skillMove(key).type === "attack" && !state.weaponHistory.includes(key)) state.weaponHistory.push(key);
@@ -1267,7 +1278,7 @@ async function settleRound(playerKey, aiKey) {
   });
   state.history.push(playerKey);
   state.aiMoveHistory.push(aiKey);
-  state.afterReset = Boolean(result.reset);
+  state.afterReset = Boolean(roundReset);
   const after = { playerEnergy: formatNumber(state.player.energy), aiEnergy: formatNumber(state.ai.energy), playerHp: data.settings.skillsEnabled ? formatNumber(state.player.hp) : null, aiHp: data.settings.skillsEnabled ? formatNumber(state.ai.hp) : null };
   state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title, detail: result.detail + skillDetail, before, after, skillEvents, skills: data.settings.skillsEnabled ? { player: SKILLS[data.settings.playerSkill].name, ai: SKILLS[data.settings.aiSkill].name } : null });
   data.stats.moves[playerKey] = (data.stats.moves[playerKey] || 0) + 1;
