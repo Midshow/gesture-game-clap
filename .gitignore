@@ -1,0 +1,28 @@
+# Generated packages and deployment output
+/dist/
+
+# Duplicate standalone builds kept at the repository root.
+# Canonical releases live in 合掌网页版-正式版本存档/.
+/合掌网页版v*.html
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Editor, operating-system and temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Test and tool caches
+.cache/
+coverage/
+node_modules/
