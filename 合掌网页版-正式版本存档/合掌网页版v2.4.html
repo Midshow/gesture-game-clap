@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12100f">
+  <meta name="description" content="合掌：一分钟学会，随时和 AI 练习的拍手对战游戏。">
+  <meta property="og:title" content="合掌 · 拍两下，见真招">
+  <meta property="og:description" content="离线可玩的合掌教学与 AI 练习游戏。">
+
+  <title>合掌 · 拍两下，见真招</title>
+  <style>
+:root{--ink:#171412;--paper:#f3eddf;--paper-2:#e7dcc7;--red:#d73e2d;--red-dark:#8e211b;--gold:#d49b32;--muted:#746b60;--line:#cfc2aa;--white:#fffdf7;--shadow:0 20px 60px rgba(43,28,16,.15)}
+*{box-sizing:border-box}html{background:var(--paper);scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 12% 0,rgba(215,62,45,.11),transparent 24rem),linear-gradient(100deg,transparent 49.8%,rgba(83,60,38,.025) 50%,transparent 50.2%),var(--paper);min-height:100vh}
+button,select,input{font:inherit}button{color:inherit}.topbar{height:76px;padding:0 max(24px,calc((100vw - 1180px)/2));display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(112,91,65,.2);position:sticky;top:0;background:rgba(243,237,223,.9);backdrop-filter:blur(14px);z-index:20}
+.brand{border:0;background:none;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left}.brand-mark{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--red);color:white;font-family:serif;font-size:23px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.2)}.brand strong{display:block;letter-spacing:.18em}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:.08em}.top-actions{display:flex;gap:8px;align-items:center}.quick-mode{border:1px solid var(--line);background:rgba(255,255,255,.35);border-radius:999px;padding:8px 25px 8px 11px;font-size:11px;color:var(--ink)}.quiet-button,.text-button,.icon-button{border:0;background:transparent;cursor:pointer}.quiet-button{padding:9px 13px;border:1px solid transparent;border-radius:999px}.quiet-button:hover{border-color:var(--line);background:rgba(255,255,255,.35)}
+main{width:min(1180px,calc(100% - 40px));margin:auto}.view{display:none}.view.active{display:block}.home-view{padding:clamp(54px,8vw,110px) 0 70px}.hero{max-width:780px}.eyebrow{margin:0 0 13px;text-transform:uppercase;color:var(--red);font-weight:800;font-size:11px;letter-spacing:.2em}.hero h1{font-family:"STKaiti","KaiTi",serif;font-size:clamp(62px,11vw,136px);line-height:.84;margin:0;letter-spacing:-.08em;font-weight:900}.hero h1 em{font-style:normal;color:var(--red)}.hero-copy{font-size:clamp(17px,2vw,22px);line-height:1.75;color:#51483f;max-width:650px;margin:30px 0}.hero-actions,.game-over-actions{display:flex;gap:12px;flex-wrap:wrap}.primary-button,.secondary-button{border-radius:4px;padding:14px 22px;border:1px solid var(--ink);font-weight:800;cursor:pointer}.primary-button{background:var(--ink);color:var(--white);box-shadow:5px 5px 0 var(--red)}.primary-button:hover{transform:translate(-1px,-1px);box-shadow:7px 7px 0 var(--red)}.secondary-button{background:transparent}.secondary-button:hover{background:rgba(255,255,255,.45)}
+.quick-rules{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:clamp(70px,10vw,130px)}.quick-rules article{background:rgba(255,253,247,.55);padding:28px;min-height:170px}.quick-rules article>span{font-family:serif;color:var(--red);font-size:13px}.quick-rules strong{display:block;font:700 27px "STKaiti","KaiTi",serif;margin:24px 0 9px}.quick-rules p{color:var(--muted);line-height:1.65;margin:0}.home-stats{display:flex;justify-content:flex-end;gap:46px;padding:34px 4px}.home-stats div{display:flex;flex-direction:column;text-align:right}.home-stats strong{font:700 26px Georgia,serif}.home-stats span{font-size:11px;color:var(--muted);margin-top:5px}
+.game-view{padding:38px 0 80px}.game-toolbar,.dock-heading{display:flex;align-items:flex-end;justify-content:space-between}.game-toolbar h2,.dock-heading h3{margin:0;font:800 32px "STKaiti","KaiTi",serif}.score{display:flex;align-items:center;gap:16px}.score span{display:grid;grid-template-columns:auto auto;gap:8px;align-items:end}.score small{color:var(--muted);font-size:11px}.score strong{font:700 34px Georgia,serif}.score i{font-style:normal;color:var(--line);font-size:25px}.endless-score{display:flex;gap:18px}.endless-score span{display:flex;flex-direction:column;align-items:flex-end}.endless-score small{color:var(--muted);font-size:9px}.endless-score strong{font:700 22px Georgia,serif}.hidden{display:none!important}.duel-board{display:grid;grid-template-columns:1fr .78fr 1fr;gap:14px;margin:30px 0}.fighter,.clash,.move-dock,.battle-log{border:1px solid var(--line);background:rgba(255,253,247,.62)}.fighter{padding:22px;min-height:242px;display:flex;flex-direction:column}.fighter.ai{border-top:4px solid var(--red)}.fighter.player{border-top:4px solid #324f67}.fighter-head{display:flex;align-items:center;gap:12px}.avatar{width:48px;height:48px;border-radius:50%;background:var(--ink);color:var(--white);display:grid;place-items:center;font:800 18px serif}.player .avatar{background:#324f67}.fighter-head small,.fighter-head strong{display:block}.fighter-head small{font-size:10px;color:var(--muted);margin-bottom:4px}.skill-badge{margin-top:12px;color:var(--red-dark);font:800 13px "STKaiti","KaiTi",serif}.health-row,.energy-row{display:grid;grid-template-columns:auto 1fr 32px;gap:9px;align-items:center;margin-top:14px;font-size:11px;color:var(--muted)}.health-track{height:7px;background:var(--paper-2)}.health-track i{display:block;height:100%;width:100%;background:var(--red);transition:width .25s}.player .health-track i{background:#52728a}.energy-row{grid-template-columns:auto 1fr 22px}.energy-track{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.energy-cell{height:8px;background:var(--paper-2)}.energy-cell.filled{background:var(--gold)}.energy-hidden .energy-row{visibility:hidden}.zen-mode .fighter{background:rgba(255,253,247,.3)}.zen-mode .score,.zen-mode .endless-score{filter:grayscale(.4)}.revealed-move{margin-top:auto;padding-top:25px;display:flex;align-items:center;gap:12px}.revealed-move.hidden{visibility:hidden}.revealed-move span{font-size:38px}.revealed-move strong{font-family:"STKaiti","KaiTi",serif;font-size:24px}.clash{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px}.clash p{color:var(--red);font-size:11px;font-weight:800;letter-spacing:.14em}.clash strong{font:800 26px "STKaiti","KaiTi",serif;margin:6px 0}.clash>span{color:var(--muted);font-size:12px;line-height:1.55}.clash.win{background:#edf1e5}.clash.lose{background:#f4ded7}.clash.draw{background:#eee6d6}.timer-track{width:100%;height:3px;background:var(--paper-2);margin-top:22px}.timer-track.hidden{display:none}.timer-track i{height:100%;width:100%;display:block;background:var(--red);transition:width .1s linear}
+.move-dock{padding:20px;margin-top:16px;box-shadow:var(--shadow)}.text-button{color:var(--red);font-size:12px;font-weight:700}.move-legend{display:flex;gap:18px;margin:15px 0 11px;color:var(--muted);font-size:10px}.move-legend span{display:flex;align-items:center;gap:6px}.move-legend i{width:7px;height:7px;border-radius:50%}.basic-dot{background:#526a73}.attack-dot{background:var(--red)}.move-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:7px}.move-card{position:relative;min-height:86px;padding:10px 7px 8px;border:1px solid var(--line);border-top:3px solid #526a73;background:var(--white);cursor:pointer;text-align:center;transition:.15s}.move-card.attack{border-top-color:var(--red)}.move-card:hover:not(:disabled){border-color:var(--red);transform:translateY(-2px)}.move-card:disabled{opacity:.4;cursor:not-allowed}.move-card .move-icon{font-size:21px;display:block;line-height:1}.move-card strong{display:block;margin:8px 0 3px;font-size:12px}.move-card small{display:block;font-size:9px;color:var(--muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.move-cost{position:absolute;right:4px;top:4px;border-radius:50%;background:var(--paper-2);width:19px;height:19px;display:grid;place-items:center;font:700 9px Georgia,serif}.dock-hint{margin:10px 0 0;color:var(--muted);font-size:10px}.battle-log{margin-top:14px;padding:0 22px}.battle-log summary{padding:18px 0;cursor:pointer;font-weight:800;font-size:12px}.battle-log summary span{background:var(--red);color:white;border-radius:99px;padding:2px 7px;margin-left:5px}.battle-log ol{padding:0 0 17px 22px;color:var(--muted);font-size:12px}.battle-log li{padding:7px;border-bottom:1px solid var(--paper-2)}.battle-log b{color:var(--ink)}
+dialog{width:min(780px,calc(100% - 28px));max-height:88vh;border:1px solid var(--line);background:var(--paper);padding:26px;box-shadow:var(--shadow);color:var(--ink)}dialog::backdrop{background:rgba(23,20,18,.7);backdrop-filter:blur(4px)}.dialog-head{display:flex;justify-content:space-between;align-items:flex-start}.dialog-head h2{margin:0;font:800 38px "STKaiti","KaiTi",serif}.icon-button{font-size:30px;line-height:1}.rule-summary{display:flex;justify-content:space-between;gap:16px;background:var(--ink);color:white;padding:17px;margin:22px 0}.rule-summary span{color:#cfc5b7}.rule-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.rule-card{border:1px solid var(--line);padding:16px;display:grid;grid-template-columns:40px 1fr;gap:10px}.rule-card>span{font-size:27px}.rule-card strong{display:block}.rule-card small{display:block;color:var(--muted);line-height:1.45;margin-top:5px}.settings-form{display:grid;gap:16px;margin-top:25px}.settings-form>label{display:grid;grid-template-columns:1fr 1fr;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px;font-weight:700}.settings-form select,.settings-form input[type=number]{padding:10px;border:1px solid var(--line);background:var(--white)}.switch-row span small{display:block;color:var(--muted);font-weight:400;margin-top:4px}.switch-row input{justify-self:end;width:20px;height:20px}.skill-description{padding:12px;background:var(--paper-2);font-size:11px;line-height:1.6;color:var(--muted)}.settings-form .primary-button{margin-top:8px}.tutorial-dialog{width:min(600px,calc(100% - 28px));min-height:470px}.tutorial-close{float:right}.tutorial-step{padding:45px 15px 20px;text-align:center}.tutorial-icon{font-size:76px}.tutorial-step h2{font:800 40px "STKaiti","KaiTi",serif;margin:20px 0 12px}.tutorial-step p{color:var(--muted);line-height:1.7;max-width:440px;margin:auto}.tutorial-demo{margin:24px auto 0;padding:15px;background:var(--paper-2);font-weight:800}.tutorial-footer{display:flex;align-items:center;justify-content:space-between;margin-top:30px}.tutorial-dots{display:flex;gap:6px}.tutorial-dots i{width:7px;height:7px;background:var(--line);border-radius:50%}.tutorial-dots i.active{background:var(--red);width:20px;border-radius:9px}.game-over-dialog{text-align:center;width:min(520px,calc(100% - 28px))}.result-seal{width:92px;height:92px;margin:10px auto 18px;border:5px double var(--red);color:var(--red);border-radius:50%;display:grid;place-items:center;font:900 47px "STKaiti","KaiTi",serif;transform:rotate(-7deg)}.game-over-dialog h2{font:900 46px "STKaiti","KaiTi",serif;margin:0}.game-over-dialog p:not(.eyebrow){color:var(--muted)}.game-over-actions{justify-content:center;margin-top:25px}.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:white;padding:10px 16px;border-radius:3px;z-index:50;transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,0)}.clap-overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(23,20,18,.72);z-index:40;opacity:0;pointer-events:none}.clap-overlay.show{animation:clap .18s ease}.clap-overlay span{font:900 clamp(70px,15vw,150px) "STKaiti","KaiTi",serif;color:white}@keyframes clap{0%{opacity:0;transform:scale(.9)}40%{opacity:1;transform:scale(1)}100%{opacity:0}}
+@media(max-width:980px){.move-grid{grid-template-columns:repeat(5,1fr)}}@media(max-width:800px){main{width:min(100% - 24px,1180px)}.topbar{height:65px;padding:0 14px}.brand small{display:none}.home-view{padding-top:50px}.quick-rules{grid-template-columns:1fr}.quick-rules article{min-height:unset}.home-stats{justify-content:space-between;gap:8px}.duel-board{grid-template-columns:1fr 1fr}.clash{grid-column:1/-1;grid-row:2;min-height:170px}.fighter{min-height:200px;padding:16px}.rule-grid{grid-template-columns:1fr}.rule-summary{flex-direction:column}.settings-form>label{grid-template-columns:1fr;gap:9px}.switch-row{grid-template-columns:1fr auto!important}.move-dock{padding:15px}.game-toolbar{align-items:center}}@media(max-width:480px){.hero h1{font-size:64px}.hero-actions>*{width:100%}.quick-rules{margin-top:55px}.fighter-head .avatar{width:38px;height:38px}.fighter-head strong{font-size:13px}.energy-row{grid-template-columns:1fr 20px}.energy-row>span{display:none}.revealed-move span{font-size:29px}.revealed-move strong{font-size:18px}.score{gap:8px}.score strong{font-size:25px}.move-grid{grid-template-columns:repeat(5,1fr);gap:5px}.move-card{min-height:72px;padding:8px 3px 5px}.move-card .move-icon{font-size:18px}.move-card strong{font-size:11px;margin:6px 0 2px}.move-card small{font-size:8px}.move-cost{width:17px;height:17px;font-size:8px}.game-over-actions>*{width:100%}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.skill-rules-title{margin:30px 0 12px;font:800 24px "STKaiti","KaiTi",serif}
+.fighter.player{grid-column:1;grid-row:1}.clash{grid-column:2;grid-row:1}.fighter.ai{grid-column:3;grid-row:1}.fighter.point-won{animation:panelPoint .65s ease}.fighter.point-lost{animation:panelFade .65s ease}.score-feedback{min-height:24px;margin-top:12px;padding:0 10px;border-left:3px solid transparent;color:var(--muted);font-size:12px;display:flex;align-items:center;opacity:0;transform:translateY(-3px);transition:.2s}.score-feedback.show{opacity:1;transform:translateY(0)}.score-feedback.win{border-color:#52728a;color:#324f67}.score-feedback.lose{border-color:var(--red);color:var(--red-dark)}@keyframes panelPoint{0%,100%{box-shadow:none}35%{box-shadow:0 0 0 3px rgba(82,114,138,.16)}}@keyframes panelFade{0%,100%{opacity:1}35%{opacity:.72}}
+@media(max-width:800px){.fighter.player{grid-column:1;grid-row:1}.fighter.ai{grid-column:2;grid-row:1}.clash{grid-column:1/-1;grid-row:2}}
+@media(max-width:600px){
+  .topbar{height:48px;padding:0 8px}.brand-mark{width:32px;height:32px;font-size:17px}.brand strong{font-size:13px}.quiet-button{padding:6px 7px;font-size:10px}.quick-mode{padding:6px 20px 6px 8px;font-size:10px}
+  main{width:calc(100% - 12px)}.game-view{padding:8px 0 20px}.game-toolbar{min-height:38px;align-items:center}.game-toolbar .eyebrow{margin-bottom:3px;font-size:8px}.game-toolbar h2{font-size:20px}.score{gap:6px}.score strong{font-size:22px}.score i{font-size:16px}.score small{font-size:8px}.endless-score{gap:8px}.endless-score strong{font-size:16px}.score-feedback{min-height:18px;margin-top:3px;padding-left:6px;font-size:9px}
+  .duel-board{grid-template-columns:1fr .82fr 1fr;gap:5px;margin:4px 0 6px}.fighter.player{grid-column:1;grid-row:1}.clash{grid-column:2;grid-row:1;min-height:132px;padding:8px 4px}.fighter.ai{grid-column:3;grid-row:1}.fighter{min-width:0;min-height:132px;padding:7px}.fighter-head{gap:5px}.avatar{width:27px;height:27px;font-size:10px}.fighter-head small{display:none}.fighter-head strong{font-size:10px;white-space:nowrap}.skill-badge{margin-top:5px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.health-row,.energy-row{grid-template-columns:1fr 22px;margin-top:7px;gap:4px;font-size:8px}.health-row>span,.energy-row>span{display:none}.energy-track{gap:1px}.energy-cell{height:5px}.health-track{height:5px}.revealed-move{padding-top:7px;gap:4px;flex-direction:column;align-items:flex-start}.revealed-move span{font-size:20px}.revealed-move strong{font-size:12px}.clash p{font-size:7px;margin:0}.clash strong{font-size:14px;margin:5px 0}.clash>span{font-size:8px;line-height:1.3}.timer-track{margin-top:8px}
+  .move-dock{padding:8px;margin-top:0;box-shadow:none}.dock-heading h3{font-size:18px}.dock-heading .eyebrow{display:none}.move-legend{margin:5px 0;font-size:8px;gap:10px}.move-grid{grid-template-columns:repeat(6,1fr);gap:3px}.move-card{min-height:51px;padding:5px 2px 3px}.move-card .move-icon{font-size:15px}.move-card strong{font-size:9px;margin:4px 0 0}.move-card small{display:none}.move-cost{width:14px;height:14px;right:2px;top:2px;font-size:7px}.dock-hint{display:none}.battle-log{display:none}
+}
+
+.first-turn-hint{display:flex;align-items:center;gap:10px;margin:8px 0 12px;padding:10px 13px;border:1px solid var(--line);background:#fff8e9;font-size:12px}.first-turn-hint span{color:var(--muted);flex:1}.first-turn-hint .text-button{white-space:nowrap}.battle-log details{border-bottom:1px solid var(--paper-2)}.battle-log details:last-child{border-bottom:0}.battle-log details summary{cursor:pointer;padding:10px 7px;list-style-position:inside}.battle-log details p{margin:0;padding:0 10px 12px;color:var(--muted);font-size:11px;line-height:1.65}.skill-event{display:inline-block;margin:3px 4px 0 0;padding:2px 6px;border-radius:2px;background:#f4dfb7;color:var(--red-dark);font-weight:800}.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px}.stat-card{border:1px solid var(--line);background:var(--white);padding:17px}.stat-card strong{display:block;font:700 28px Georgia,serif}.stat-card span{display:block;color:var(--muted);font-size:11px;margin-top:6px}.stat-card.wide{grid-column:span 3}.stat-card ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:12px;line-height:1.7}@media(max-width:600px){.topbar{position:sticky}.top-actions{gap:2px}.quiet-button{padding:8px 6px;font-size:11px}.quick-mode{max-width:76px;padding-right:4px}.first-turn-hint{font-size:10px;padding:7px 8px;gap:5px}.first-turn-hint b{white-space:nowrap}.game-view{padding-bottom:6px}.move-dock{position:sticky;bottom:0;background:var(--paper);z-index:10;border-bottom:0}.battle-log{display:block!important;margin:7px 0 8px;padding:0 10px}.battle-log>summary{padding:10px 0;font-size:11px}.battle-log ol{max-height:38vh;overflow:auto;padding-left:15px}.stats-grid{grid-template-columns:repeat(2,1fr)}.stat-card.wide{grid-column:span 2}.game-over-actions{display:grid;grid-template-columns:1fr 1fr}.game-over-actions .primary-button{grid-column:span 2}}
+.dock-actions{display:flex;align-items:center;gap:12px}@media(max-width:600px){.dock-actions{gap:7px}.dock-actions .text-button{font-size:10px}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" id="homeButton" aria-label="返回首页">
+      <span class="brand-mark">合</span>
+      <span><strong>合掌</strong><small>拍两下，见真招</small></span>
+    </button>
+    <nav class="top-actions" aria-label="快捷操作">
+      <select class="quick-mode" id="quickModeSelect" aria-label="游戏模式">
+        <option value="standard">标准</option>
+        <option value="endless">无尽</option>
+        <option value="zen">禅</option>
+      </select>
+      <button class="quiet-button" id="statsButton">战绩</button>
+      <button class="quiet-button" id="rulesButton">规则</button>
+      <button class="quiet-button" id="settingsButton">设置</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="view home-view active" id="homeView" aria-labelledby="heroTitle">
+      <div class="hero">
+        <p class="eyebrow">无需安装 · 离线可玩 · 一分钟上手</p>
+        <h1 id="heroTitle">拍两下，<br><em>见真招。</em></h1>
+        <p class="hero-copy">锻造攒能量，攻防猜心思。先跟 AI 练几局，再去找同学面对面对决。</p>
+        <div class="hero-actions">
+          <button class="primary-button" data-action="start-game">开始练习 <span>→</span></button>
+          <button class="secondary-button" data-action="start-tutorial">一分钟教学</button>
+        </div>
+      </div>
+
+      <div class="quick-rules" aria-label="核心规则">
+        <article><span>01</span><strong>锻造</strong><p>获得 1 格能量，但此时没有防御。</p></article>
+        <article><span>02</span><strong>出招</strong><p>消耗 N 格能量，就是 N 级攻击。</p></article>
+        <article><span>03</span><strong>博弈</strong><p>高级压低级；防、接、闪各有所长。</p></article>
+      </div>
+
+      <div class="home-stats">
+        <div><strong id="homeGames">0</strong><span>累计练习</span></div>
+        <div><strong id="homeBest">0</strong><span>最高连胜</span></div>
+        <div><strong id="homeWinRate">—</strong><span>练习胜率</span></div>
+      </div>
+    </section>
+
+    <section class="view game-view" id="gameView" aria-labelledby="gameHeading">
+      <div class="game-toolbar">
+        <div>
+          <p class="eyebrow" id="modeLabel">AI 练习 · 普通</p>
+          <h2 id="gameHeading">第 <span id="roundNumber">1</span> 回合</h2>
+        </div>
+        <div class="score" id="standardScore" aria-label="比分">
+          <span><small>你</small><strong id="playerScore">0</strong></span>
+          <i>:</i>
+          <span><small>AI</small><strong id="aiScore">0</strong></span>
+        </div>
+        <div class="endless-score hidden" id="endlessScore" aria-label="无尽模式统计">
+          <span><small>胜</small><strong id="endlessWins">0</strong></span>
+          <span><small>负</small><strong id="endlessLosses">0</strong></span>
+          <span><small>连胜</small><strong id="endlessStreak">0</strong></span>
+          <span><small>最高</small><strong id="endlessBest">0</strong></span>
+        </div>
+      </div>
+      <div class="score-feedback" id="scoreFeedback" role="status" aria-live="polite"></div>
+      <aside class="first-turn-hint hidden" id="firstTurnHint" aria-label="对局提示">
+        <b>第一局小提示</b><span>能量在双方头像下方；可用招式亮起；每回合结果会显示在中间。</span><button class="text-button" id="dismissFirstHint">知道了</button>
+      </aside>
+
+      <div class="duel-board">
+        <article class="fighter ai" id="aiPanel">
+          <div class="fighter-head"><span class="avatar">忍</span><div><small>对手</small><strong>AI 忍者</strong></div></div>
+          <div class="skill-badge hidden" id="aiSkillBadge"></div>
+          <div class="health-row hidden" id="aiHealthRow"><span>生命</span><div class="health-track"><i id="aiHealthBar"></i></div><b id="aiHealthCount">2</b></div>
+          <div class="energy-row"><span>能量</span><div class="energy-track" id="aiEnergy"></div><b id="aiEnergyCount">0</b></div>
+          <div class="revealed-move hidden" id="aiMove"><span>？</span><strong>等待出招</strong></div>
+        </article>
+
+        <div class="clash" id="clash">
+          <p id="clashKicker">准备好了吗？</p>
+          <strong id="clashTitle">选择你的招式</strong>
+          <span id="clashDetail">每回合会先拍手两次，再同时揭晓。</span>
+          <div class="timer-track hidden" id="timerTrack"><i id="timerBar"></i></div>
+        </div>
+
+        <article class="fighter player" id="playerPanel">
+          <div class="fighter-head"><span class="avatar">你</span><div><small>挑战者</small><strong>你</strong></div></div>
+          <div class="skill-badge hidden" id="playerSkillBadge"></div>
+          <div class="health-row hidden" id="playerHealthRow"><span>生命</span><div class="health-track"><i id="playerHealthBar"></i></div><b id="playerHealthCount">2</b></div>
+          <div class="energy-row"><span>能量</span><div class="energy-track" id="playerEnergy"></div><b id="playerEnergyCount">0</b></div>
+          <div class="revealed-move hidden" id="playerMove"><span>？</span><strong>等待出招</strong></div>
+        </article>
+      </div>
+
+      <section class="move-dock" aria-labelledby="moveTitle">
+        <div class="dock-heading">
+          <div><p class="eyebrow">你的回合</p><h3 id="moveTitle">选择招式</h3></div>
+          <div class="dock-actions"><button class="text-button" id="battleLogButton">战斗记录</button><button class="text-button" id="restartButton">重新开始</button></div>
+        </div>
+        <div class="move-legend" aria-hidden="true">
+          <span><i class="basic-dot"></i>蓄力 / 防御</span>
+          <span><i class="attack-dot"></i>攻击</span>
+        </div>
+        <div class="move-grid" id="moveGrid"></div>
+        <p class="dock-hint" id="dockHint">能量不足的招式会自动锁定。</p>
+      </section>
+
+      <details class="battle-log" id="battleLog">
+        <summary>战斗记录 <span id="logCount">0</span></summary>
+        <ol id="logList"></ol>
+      </details>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="clap-overlay" id="clapOverlay" aria-hidden="true"><span>啪！</span></div>
+
+  <dialog id="rulesDialog">
+    <div class="dialog-head"><div><p class="eyebrow">随时查阅</p><h2>规则图鉴</h2></div><button class="icon-button" data-close="rulesDialog" aria-label="关闭">×</button></div>
+    <div class="rule-summary"><b>攻击等级 = 消耗能量数</b><span>同级抵刀且均不受伤，高级压制低级。</span></div>
+    <div class="rule-grid" id="ruleGrid"></div>
+    <h3 class="skill-rules-title">技能模式 · 两版共同规则</h3>
+    <div class="rule-grid" id="skillRuleGrid"></div>
+  </dialog>
+
+  <dialog id="settingsDialog">
+    <div class="dialog-head"><div><p class="eyebrow">本机保存</p><h2>练习设置</h2></div><button class="icon-button" data-close="settingsDialog" aria-label="关闭">×</button></div>
+    <form class="settings-form" method="dialog">
+      <label>游戏模式<select id="modeSelect"><option value="standard">标准 · 达到目标胜场结束</option><option value="endless">无尽 · 持续记录连胜</option><option value="zen">禅 · 隐藏能量的无尽对决</option></select></label>
+      <label>AI 难度<select id="difficultySelect"><option value="easy">简单 · 基础策略</option><option value="normal">普通 · 稳健应对</option><option value="hard">困难 · 深度预判</option><option value="hell">地狱 · 极限博弈</option></select></label>
+      <label id="winScoreSetting">目标胜场<select id="winScoreSelect"><option value="1">一局定胜负</option><option value="3">先得 3 分</option><option value="5">先得 5 分</option><option value="7">先得 7 分</option></select></label>
+      <label class="switch-row"><span>回合计时<small>超时自动选择“防”</small></span><input id="timerToggle" type="checkbox"></label>
+      <label>计时秒数<input id="timerSeconds" type="number" min="0" max="15" step="any"></label>
+      <label class="switch-row" id="energySetting"><span>显示能量<small>禅模式会强制隐藏</small></span><input id="energyToggle" type="checkbox"></label>
+      <label class="switch-row"><span>技能模式<small>启用血量、攻击力和角色被动</small></span><input id="skillToggle" type="checkbox"></label>
+      <label id="playerSkillSetting">你的技能<select id="playerSkillSelect"></select></label>
+      <label id="aiSkillSetting">AI 技能<select id="aiSkillSelect"></select></label>
+      <div class="skill-description hidden" id="skillDescription"></div>
+      <label class="switch-row"><span>剪刀模式<small>加入消耗1能量的特殊攻击“剪刀”</small></span><input id="scissorsToggle" type="checkbox"></label>
+      <label class="switch-row"><span>音效<small>拍手和命中反馈</small></span><input id="soundToggle" type="checkbox"></label>
+      <button class="primary-button" value="confirm">保存并重新开始</button>
+    </form>
+  </dialog>
+
+  <dialog id="tutorialDialog" class="tutorial-dialog">
+    <button class="icon-button tutorial-close" data-close="tutorialDialog" aria-label="关闭">×</button>
+    <div class="tutorial-step" id="tutorialStep"></div>
+    <div class="tutorial-footer"><div class="tutorial-dots" id="tutorialDots"></div><button class="primary-button" id="tutorialNext">下一步</button></div>
+  </dialog>
+
+  <dialog id="gameOverDialog" class="game-over-dialog">
+    <p class="eyebrow">本局结束</p><div class="result-seal" id="resultSeal">胜</div>
+    <h2 id="gameOverTitle">漂亮！</h2><p id="gameOverText"></p>
+    <div class="game-over-actions"><button class="primary-button" id="playAgainButton">再来一局</button><button class="secondary-button" id="shareResultButton">保存战报</button><button class="secondary-button" id="backHomeButton">返回首页</button></div>
+  </dialog>
+  <dialog id="statsDialog">
+    <div class="dialog-head"><div><p class="eyebrow">仅保存在此设备</p><h2>练习战绩</h2></div><button class="icon-button" data-close="statsDialog" aria-label="关闭">×</button></div>
+    <div class="stats-grid" id="statsContent"></div>
+  </dialog>
+  <script>
+
+/* js/moves.js */
+const MAX_ENERGY = 6;
+
+const MOVES = {
+  forge: { name: "锻造", type: "basic", icon: "✊", cost: 0, gain: 1, summary: "+1 能量 · 无防御", rule: "获得1格能量；锻造时被任意攻击命中。" },
+  guard: { name: "防", type: "basic", icon: "🛡️", cost: 0, blocks: [1, 2], summary: "挡 1～2 级 · 免费", rule: "挡住小刀和武士刀；挡不住3级以上攻击。" },
+  catch: { name: "接", type: "basic", icon: "🤲", cost: 0, blocks: [2, 3], resets: true, summary: "挡 2～3 级 · 重置", rule: "接住武士刀或手里剑后，双方能量归零。" },
+  flash: { name: "闪", type: "basic", icon: "💨", cost: 2, blocks: [2, 3, 4, 5], resets: true, summary: "挡 2～5 级 · 2 能量", rule: "躲开2～5级攻击并重置能量；挡不了小刀和虚无。" },
+  scissors: { name: "剪刀", type: "attack", icon: "✂️", cost: 1, level: 1.5, summary: "特殊攻击 · 1 能量", rule: "克制小刀、武士刀、手里剑和接；被防、闪、锻造、苦无、龙牙和虚无克制。" },
+  knife: { name: "小刀", type: "attack", icon: "🔪", cost: 1, level: 1, summary: "1 级攻击", rule: "最低消耗的攻击，可击中锻造、接和闪。" },
+  katana: { name: "武士刀", type: "attack", icon: "⚔️", cost: 2, level: 2, summary: "2 级攻击", rule: "强于小刀，但会被防、接和闪挡住。" },
+  shuriken: { name: "手里剑", type: "attack", icon: "✦", cost: 3, level: 3, summary: "3 级攻击", rule: "能够突破防，但会被接或闪挡住。" },
+  kunai: { name: "苦无", type: "attack", icon: "🗡️", cost: 4, level: 4, summary: "4 级攻击", rule: "只有闪能防住；高级攻击会压制低级攻击。" },
+  dragonFang: { name: "龙牙", type: "attack", icon: "🐉", cost: 5, level: 5, summary: "5 级攻击", rule: "只有闪能防住，威力仅次于虚无。" },
+  void: { name: "虚无", type: "attack", icon: "◉", cost: 6, level: 6, summary: "6 级 · 不可防御", rule: "终极攻击，任何防御都无法抵挡。" }
+};
+
+const MOVE_KEYS = Object.keys(MOVES);
+const ATTACK_KEYS = MOVE_KEYS.filter(key => MOVES[key].type === "attack");
+
+function canAfford(moveKey, energy) {
+  return MOVES[moveKey].cost <= energy;
+}
+
+
+/* js/combat.js */
+
+function outcome(playerHit = false, aiHit = false, reset = false, title = "", detail = "") {
+  return { playerHit, aiHit, reset, title, detail };
+}
+
+function resolveCombat(playerKey, aiKey) {
+  const player = MOVES[playerKey];
+  const ai = MOVES[aiKey];
+  if (!player || !ai) throw new Error("未知招式");
+  if (playerKey === "scissors" || aiKey === "scissors") return resolveScissors(playerKey, aiKey);
+
+  if (player.type === "basic" && ai.type === "basic") {
+    if (playerKey === "forge" && aiKey === "forge") return outcome(false, false, false, "双方锻造", "各获得1格能量。");
+    return outcome(false, false, false, "相互试探", "没有人被击中。");
+  }
+  if (playerKey === "forge" && ai.type === "attack") return outcome(true, false, false, `${ai.name}命中`, "锻造时没有防御。");
+  if (aiKey === "forge" && player.type === "attack") return outcome(false, true, false, `${player.name}命中`, "锻造时没有防御。");
+  if (player.type === "attack" && ai.type === "attack") {
+    if (player.level === ai.level) return outcome(false, false, false, "抵刀", `${player.level}级对${ai.level}级，双方均不受伤。`);
+    return player.level > ai.level
+      ? outcome(false, true, false, `${player.name}压制${ai.name}`, "高级攻击压制低级攻击。")
+      : outcome(true, false, false, `${ai.name}压制${player.name}`, "高级攻击压制低级攻击。");
+  }
+  if (player.type === "attack") return attackVsDefense(playerKey, aiKey, false);
+  if (ai.type === "attack") return attackVsDefense(aiKey, playerKey, true);
+  return outcome(false, false, false, "相互试探", "没有人被击中。");
+}
+
+function resolveScissors(playerKey, aiKey) {
+  if (playerKey === "scissors" && aiKey === "scissors") {
+    return outcome(false, false, false, "抵刀", "双方剪刀相抵，均不受伤。");
+  }
+
+  const scissorsIsPlayer = playerKey === "scissors";
+  const opponentKey = scissorsIsPlayer ? aiKey : playerKey;
+  const scissorsWins = ["knife", "katana", "shuriken", "catch"];
+  const scissorsLoses = ["forge", "kunai", "dragonFang", "void"];
+
+  if (opponentKey === "guard") {
+    return outcome(false, false, false, "防住剪刀", "剪刀被“防”挡住。");
+  }
+  if (opponentKey === "flash") {
+    return outcome(false, false, true, "闪过剪刀", "闪成功躲开剪刀，双方能量重置。");
+  }
+  if (scissorsWins.includes(opponentKey)) {
+    return scissorsIsPlayer
+      ? outcome(false, true, false, "剪刀克制", `剪刀击败${MOVES[opponentKey].name}。`)
+      : outcome(true, false, false, "剪刀克制", `剪刀击败${MOVES[opponentKey].name}。`);
+  }
+  if (scissorsLoses.includes(opponentKey)) {
+    return scissorsIsPlayer
+      ? outcome(true, false, false, `${MOVES[opponentKey].name}克制剪刀`, "剪刀被克制。")
+      : outcome(false, true, false, `${MOVES[opponentKey].name}克制剪刀`, "剪刀被克制。");
+  }
+  return outcome(false, false, false, "相互试探", "没有人被击中。");
+}
+
+function attackVsDefense(attackKey, defenseKey, defenderIsPlayer) {
+  const attack = MOVES[attackKey];
+  const defense = MOVES[defenseKey];
+  const blocked = Array.isArray(defense.blocks) && defense.blocks.includes(attack.level);
+  if (blocked) {
+    return outcome(false, false, Boolean(defense.resets), `${defense.name}成功`, `${defense.name}挡住了${attack.level}级${attack.name}${defense.resets ? "，双方能量归零" : ""}。`);
+  }
+  return defenderIsPlayer
+    ? outcome(true, false, false, `${attack.name}突破${defense.name}`, `${defense.name}无法防御${attack.level}级攻击。`)
+    : outcome(false, true, false, `${attack.name}突破${defense.name}`, `${defense.name}无法防御${attack.level}级攻击。`);
+}
+
+
+/* js/skills.js */
+
+
+const SKILLS = {
+  generalist: { name: "通识者", hp: 2, attack: 1, description: "造成或受到伤害后，下一次锻造获得2格能量。" },
+  whiteTower: { name: "白塔", hp: 2, attack: 1, description: "使用此前双方均未出过的武器时，返还该武器的能量花费；双方同时首次使用仍可触发。" },
+  reaper: { name: "死神", hp: 1, attack: 1, description: "造成伤害后，生命与攻击力各增加1。" },
+  tyrant: { name: "暴君", hp: 3, attack: 1, description: "生命不高于1时，造成的伤害变为10。" },
+  mother: { name: "母亲", hp: 1, attack: 1, description: "上一回合造成过伤害时，回合开始恢复0.5生命。" },
+  hunter: { name: "猎人", hp: 2, attack: 1, description: "死亡时，对对手造成1点真实伤害。" },
+  warrior: { name: "战士", hp: 2, attack: 1, description: "武士刀可突破“防”，但因此造成的伤害为0.5。" },
+  assassin: { name: "刺客", hp: 2, attack: 1, description: "每条生命首次小刀命中时伤害+0.5；你的“防”可挡手里剑。" },
+  secretKeeper: { name: "窥秘人", hp: 2, attack: 1, description: "龙牙和虚无花费-1；对手受伤时恢复1生命。" },
+  prisoner: { name: "囚徒", hp: 2, attack: 1, description: "闪免费、攻击花费+1；每成功闪两次，攻击花费永久-1（最低1）。" },
+  demon: { name: "恶魔", hp: 3, attack: 0, description: "每回合结束攻击力+0.5。" },
+  sun: { name: "太阳", hp: 2, attack: 1, description: "造成的伤害均为真实伤害。" },
+  guardian: { name: "守卫", hp: 2, attack: 1, description: "无法锻造；使用防获得0.25能量，使用接获得0.5能量。" },
+  moon: { name: "月亮", hp: 3, attack: 1, description: "闪变为防反：成功时按对手攻击力反击。" },
+  bulwark: { name: "壁垒", hp: 2, attack: 1, description: "可花费1能量使用大盾，抵挡除虚无外的攻击。" },
+  storm: { name: "风暴", hp: 2, attack: 1, description: "武士刀变为1.5级风暴之刃；未命中时下次花费-1。" }
+};
+
+const SKILL_KEYS = Object.keys(SKILLS);
+
+function createFighter(skillKey) {
+  const skill = SKILLS[skillKey] || SKILLS.generalist;
+  return {
+    energy: 0, score: 0, hp: skill.hp, maxHp: skill.hp, attack: skill.attack,
+    boostForge: false, assassinUsed: false, flashSuccesses: 0,
+    attackDiscount: 0, stormDiscount: 0, dealtDamageLastRound: false
+  };
+}
+
+function moveCost(moveKey, skillKey, fighter) {
+  if (moveKey === "bigShield") return 1;
+  let cost = MOVES[moveKey].cost;
+  if (skillKey === "secretKeeper" && (moveKey === "dragonFang" || moveKey === "void")) cost--;
+  if (skillKey === "prisoner") {
+    if (moveKey === "flash") return 0;
+    if (MOVES[moveKey].type === "attack") cost = Math.max(1, cost + 1 - (fighter.attackDiscount || 0));
+  }
+  if (skillKey === "storm" && moveKey === "katana") cost = Math.max(1, cost - (fighter.stormDiscount || 0));
+  return Math.max(0, cost);
+}
+
+function whiteTowerRefunds(moveKey, weaponHistory) {
+  return skillMove(moveKey).type === "attack" && !weaponHistory.includes(moveKey);
+}
+
+function availableMoveKeys(skillKey, scissorsEnabled = false) {
+  const keys = Object.keys(MOVES).filter(key => scissorsEnabled || key !== "scissors");
+  if (skillKey === "guardian") keys.splice(keys.indexOf("forge"), 1);
+  if (skillKey === "bulwark") keys.splice(4, 0, "bigShield");
+  return keys;
+}
+
+function skillMove(moveKey) {
+  if (moveKey === "bigShield") return { name: "大盾", type: "basic", icon: "▣", cost: 1, summary: "挡1～5级 · 1能量" };
+  return MOVES[moveKey];
+}
+
+function resolveWithSkills(playerKey, aiKey, playerSkill, aiSkill) {
+  if (playerKey === "bigShield" || aiKey === "bigShield") return resolveBigShield(playerKey, aiKey);
+  let result = resolveCombat(playerKey, aiKey);
+
+  const playerStorm = playerSkill === "storm" && playerKey === "katana";
+  const aiStorm = aiSkill === "storm" && aiKey === "katana";
+  if ((playerStorm || aiStorm) && playerKey !== "scissors" && aiKey !== "scissors" && MOVES[playerKey].type === "attack" && MOVES[aiKey].type === "attack") {
+    const playerLevel = playerStorm ? 1.5 : MOVES[playerKey].level;
+    const aiLevel = aiStorm ? 1.5 : MOVES[aiKey].level;
+    result = playerLevel === aiLevel
+      ? { playerHit: false, aiHit: false, reset: false, title: "抵刀", detail: `${playerLevel}级对${aiLevel}级，双方均不受伤。` }
+      : playerLevel > aiLevel
+        ? { playerHit: false, aiHit: true, reset: false, title: "攻击压制", detail: `${playerLevel}级压制${aiLevel}级。` }
+        : { playerHit: true, aiHit: false, reset: false, title: "攻击压制", detail: `${aiLevel}级压制${playerLevel}级。` };
+  }
+
+  if (playerSkill === "warrior" && playerKey === "katana" && aiKey === "guard") {
+    result = { playerHit: false, aiHit: true, reset: false, title: "武士刀突破防", detail: "战士造成0.5点伤害。", playerDamage: 0, aiDamage: .5 };
+  }
+  if (aiSkill === "warrior" && aiKey === "katana" && playerKey === "guard") {
+    result = { playerHit: true, aiHit: false, reset: false, title: "武士刀突破防", detail: "战士造成0.5点伤害。", playerDamage: .5, aiDamage: 0 };
+  }
+  if (playerSkill === "assassin" && playerKey === "guard" && aiKey === "shuriken") result = blocked("刺客识破手里剑");
+  if (aiSkill === "assassin" && aiKey === "guard" && playerKey === "shuriken") result = blocked("刺客识破手里剑");
+  return result;
+}
+
+function previewSkillDamage(result, playerKey, aiKey, playerSkill, aiSkill, player, ai) {
+  let playerDamage = result.playerDamage ?? (result.playerHit ? ai.attack : 0);
+  let aiDamage = result.aiDamage ?? (result.aiHit ? player.attack : 0);
+
+  if (playerDamage > 0 && aiSkill === "tyrant" && ai.hp <= 1) playerDamage = 10;
+  if (aiDamage > 0 && playerSkill === "tyrant" && player.hp <= 1) aiDamage = 10;
+  if (aiDamage > 0 && playerSkill === "assassin" && playerKey === "knife" && !player.assassinUsed) aiDamage += .5;
+  if (playerDamage > 0 && aiSkill === "assassin" && aiKey === "knife" && !ai.assassinUsed) playerDamage += .5;
+
+  const playerMove = skillMove(playerKey);
+  const aiMove = skillMove(aiKey);
+  if (playerSkill === "moon" && playerKey === "flash" && aiMove.type === "attack" && !result.playerHit) aiDamage += ai.attack;
+  if (aiSkill === "moon" && aiKey === "flash" && playerMove.type === "attack" && !result.aiHit) playerDamage += player.attack;
+
+  return { player: playerDamage, ai: aiDamage };
+}
+
+function resolveBigShield(playerKey, aiKey) {
+  const p = skillMove(playerKey);
+  const a = skillMove(aiKey);
+  if (playerKey === "bigShield" && a.type === "attack") {
+    if (a.level === 6) return { playerHit: true, aiHit: false, reset: false, title: "虚无击穿大盾", detail: "虚无不可防御。" };
+    return blocked("大盾挡住攻击");
+  }
+  if (aiKey === "bigShield" && p.type === "attack") {
+    if (p.level === 6) return { playerHit: false, aiHit: true, reset: false, title: "虚无击穿大盾", detail: "虚无不可防御。" };
+    return blocked("大盾挡住攻击");
+  }
+  return blocked("双方相互试探");
+}
+
+function blocked(title) {
+  return { playerHit: false, aiHit: false, reset: false, title, detail: "没有造成伤害。" };
+}
+
+
+/* js/ai.js */
+
+
+
+const legalMoves = (energy, scissorsEnabled = false) => Object.keys(MOVES).filter(key => (scissorsEnabled || key !== "scissors") && canAfford(key, energy));
+const legalSkillMoves = (energy, skill, fighter, scissorsEnabled = false) => availableMoveKeys(skill, scissorsEnabled).filter(key => moveCost(key, skill, fighter) <= energy);
+
+const LEVELS = {
+  easy:   { history: .20, conditional: 0, noise: .95, explore: .12, responseRate: .15, risk: .08, depth: 1, shortlist: 4, repeat: 0 },
+  normal: { history: .65, conditional: .45, noise: .34, explore: .03, responseRate: .30, risk: .18, depth: 1, shortlist: 4, repeat: .18 },
+  hard:   { history: 1.00, conditional: .85, noise: .10, explore: .01, responseRate: .45, risk: .32, depth: 2, shortlist: 3, repeat: .32 },
+  hell:   { history: 1.30, conditional: 1.20, noise: .02, explore: 0, responseRate: .65, risk: .46, depth: 3, shortlist: 3, repeat: .45 }
+};
+
+function playerMoveWeights(playerEnergy, history, historyStrength, skill = null, fighter = {}, scissorsEnabled = false, context = {}, level = LEVELS.normal) {
+  const candidates = skill ? legalSkillMoves(playerEnergy, skill, fighter, scissorsEnabled) : legalMoves(playerEnergy, scissorsEnabled);
+  const recent = history.slice(-14);
+  const counts = Object.fromEntries(candidates.map(key => [key, 0]));
+  recent.forEach(key => {
+    if (key in counts) counts[key]++;
+  });
+
+  return candidates.map(key => {
+    const move = skillMove(key);
+    let weight = 1;
+    if (key === "forge") weight += playerEnergy <= 1 ? 2.4 : playerEnergy >= 5 ? -.45 : .55;
+    if (move.type === "attack") {
+      weight += playerEnergy >= move.cost ? .35 : 0;
+      if (move.cost === playerEnergy) weight += .25;
+    }
+    if (key === "guard") weight += playerEnergy <= 1 ? .7 : .15;
+    if (key === "catch" && playerEnergy >= 2) weight += .2;
+    if (key === "flash" && playerEnergy >= 4) weight += .35;
+    if (skill === "whiteTower" && move.type === "attack" && whiteTowerRefunds(key, context.weaponHistory || [])) weight += .75;
+    if ((skill === "reaper" || skill === "secretKeeper") && move.type === "attack") weight += .35;
+    if (skill === "guardian" && (key === "guard" || key === "catch")) weight += .55;
+    if (skill === "prisoner" && key === "flash") weight += .5;
+    if (skill === "storm" && key === "katana" && fighter.stormDiscount) weight += .65;
+    if (recent.length) weight += (counts[key] / recent.length) * 5 * historyStrength;
+    if (level.conditional && context.decisionHistory?.length) {
+      const previous = context.decisionHistory.at(-1);
+      const similar = context.decisionHistory.slice(-24).filter(item =>
+        item.playerEnergy === playerEnergy &&
+        item.aiEnergy === context.aiEnergy &&
+        item.previousPlayer === previous?.move &&
+        item.afterReset === Boolean(context.afterReset)
+      );
+      const matches = similar.filter(item => item.move === key).length;
+      weight += matches * level.conditional * 1.8 / Math.max(1, similar.length);
+    }
+    return { key, weight: Math.max(.08, weight) };
+  });
+}
+
+function futureEnergy(energy, moveKey) {
+  const move = skillMove(moveKey);
+  return Math.max(0, energy - move.cost + (move.gain || 0));
+}
+
+function scoreMatchup(playerKey, aiKey, aiEnergy, playerEnergy, context) {
+  const result = context.skillsEnabled
+    ? resolveWithSkills(playerKey, aiKey, context.playerSkill, context.aiSkill)
+    : resolveCombat(playerKey, aiKey);
+  let score = 0;
+  if (context.skillsEnabled) {
+    const damage = previewSkillDamage(
+      result, playerKey, aiKey, context.playerSkill, context.aiSkill,
+      context.playerFighter, context.aiFighter
+    );
+    score += damage.player * 5.5;
+    score -= damage.ai * 6.5;
+    if (damage.player >= context.playerFighter.hp) score += 28;
+    if (damage.ai >= context.aiFighter.hp) score -= 34;
+    if (damage.player === 0 && damage.ai === 0) score += .45;
+    score += skillStrategyValue(aiKey, playerKey, damage, context);
+  } else if (result.playerHit && !result.aiHit) score += 12;
+  else if (result.aiHit && !result.playerHit) score -= 14;
+  else score += .8;
+  if (result.reset) score += aiEnergy < playerEnergy ? 2.2 : -.8;
+  score += projectedEnergy("ai", aiEnergy, aiKey, context) * .32;
+  score -= projectedEnergy("player", playerEnergy, playerKey, context) * .14;
+  if (aiKey === "forge" && playerEnergy > 0) score -= .45;
+  score += matchSituationValue(result, playerKey, aiKey, context);
+  return score;
+}
+
+function projectedEnergy(who, energy, moveKey, context) {
+  const move = skillMove(moveKey);
+  if (!context.skillsEnabled) return futureEnergy(energy, moveKey);
+  const skill = who === "ai" ? context.aiSkill : context.playerSkill;
+  const fighter = who === "ai" ? context.aiFighter : context.playerFighter;
+  let value = Math.max(0, energy - moveCost(moveKey, skill, fighter) + (move.gain || 0));
+  if (skill === "whiteTower" && whiteTowerRefunds(moveKey, context.weaponHistory || [])) {
+    value += moveCost(moveKey, skill, fighter);
+  }
+  if (skill === "generalist" && moveKey === "forge" && fighter.boostForge) value++;
+  if (skill === "guardian" && moveKey === "guard") value += .25;
+  if (skill === "guardian" && moveKey === "catch") value += .5;
+  return value;
+}
+
+function skillStrategyValue(aiKey, playerKey, damage, context) {
+  const skill = context.aiSkill;
+  let value = 0;
+  if (skill === "reaper" && damage.player > 0) value += 4;
+  if (skill === "secretKeeper" && damage.player > 0) value += 2.5;
+  if (skill === "generalist" && (damage.player > 0 || damage.ai > 0)) value += 1.2;
+  if (skill === "mother" && damage.player > 0) value += .7;
+  if (skill === "prisoner" && aiKey === "flash" && damage.ai === 0 && skillMove(playerKey).type === "attack") value += 2;
+  if (skill === "storm" && aiKey === "katana" && damage.player === 0) value += .7;
+  if (skill === "whiteTower" && whiteTowerRefunds(aiKey, context.weaponHistory || [])) {
+    value += moveCost(aiKey, skill, context.aiFighter) * .7;
+  }
+  if (skill === "hunter" && context.aiFighter.hp <= 1 && context.playerFighter.hp <= 1) value += 3;
+  if (skill === "tyrant" && context.aiFighter.hp <= 1 && damage.player > 0) value += 8;
+  if (skill === "bulwark" && aiKey === "bigShield" && context.aiFighter.hp <= 1) value += 2;
+  return value;
+}
+
+function matchSituationValue(result, playerKey, aiKey, context) {
+  const aiLeading = (context.aiScore || 0) - (context.playerScore || 0);
+  const target = context.winScore || 3;
+  const aiAtMatchPoint = context.mode === "standard" && (context.aiScore || 0) >= target - 1;
+  const playerAtMatchPoint = context.mode === "standard" && (context.playerScore || 0) >= target - 1;
+  let value = 0;
+  if (result.playerHit && !result.aiHit) value += aiAtMatchPoint ? 10 : playerAtMatchPoint ? 6 : 1.5;
+  if (result.aiHit && !result.playerHit) value -= playerAtMatchPoint ? 12 : aiAtMatchPoint ? 7 : 2;
+  if (aiLeading > 0 && aiKey === "forge" && context.playerEnergy > 0) value -= .6;
+  if (aiLeading < 0 && skillMove(aiKey).type === "attack") value += .35;
+  if (context.skillsEnabled) {
+    const hpRatio = context.aiFighter.hp / Math.max(.5, context.aiFighter.maxHp);
+    if (hpRatio <= .5 && result.aiHit) value -= 3.5;
+    if (context.playerFighter.hp <= context.aiFighter.attack && result.playerHit) value += 7;
+  }
+  return value;
+}
+
+function persistentSkillValue(context) {
+  if (!context.skillsEnabled) return 0;
+  const ai = context.aiFighter, player = context.playerFighter;
+  let value = (ai.hp - player.hp) * 1.8 + (ai.attack - player.attack) * 2.2;
+  value += (ai.attackDiscount || 0) * 1.4 + (ai.stormDiscount || 0) * .8 + (ai.boostForge ? 1 : 0);
+  value -= (player.attackDiscount || 0) * 1.1 + (player.stormDiscount || 0) * .6 + (player.boostForge ? .8 : 0);
+  if (context.aiSkill === "hunter" && ai.hp <= 1) value += 1.2;
+  if (context.playerSkill === "hunter" && player.hp <= 1) value -= 1.4;
+  return value;
+}
+
+function projectedRoundContext(playerKey, aiKey, context) {
+  const next = {
+    ...context,
+    playerFighter: { ...context.playerFighter }, aiFighter: { ...context.aiFighter },
+    history: [...(context.history || []), playerKey],
+    aiMoveHistory: [...(context.aiMoveHistory || []), aiKey],
+    weaponHistory: [...(context.weaponHistory || [])]
+  };
+  const result = context.skillsEnabled ? resolveWithSkills(playerKey, aiKey, context.playerSkill, context.aiSkill) : resolveCombat(playerKey, aiKey);
+  next.playerEnergy = projectedEnergy("player", context.playerEnergy, playerKey, context);
+  next.aiEnergy = projectedEnergy("ai", context.aiEnergy, aiKey, context);
+  if (context.skillsEnabled) {
+    if (context.playerSkill === "mother" && next.playerFighter.dealtDamageLastRound) next.playerFighter.hp = Math.min(next.playerFighter.maxHp, next.playerFighter.hp + .5);
+    if (context.aiSkill === "mother" && next.aiFighter.dealtDamageLastRound) next.aiFighter.hp = Math.min(next.aiFighter.maxHp, next.aiFighter.hp + .5);
+    const damage = previewSkillDamage(result, playerKey, aiKey, context.playerSkill, context.aiSkill, context.playerFighter, context.aiFighter);
+    next.playerFighter.hp -= damage.player; next.aiFighter.hp -= damage.ai;
+    next.playerFighter.energy = next.playerEnergy; next.aiFighter.energy = next.aiEnergy;
+    projectPersistentSkill("player", playerKey, aiKey, damage.ai, damage.player, next);
+    projectPersistentSkill("ai", aiKey, playerKey, damage.player, damage.ai, next);
+    if (next.playerFighter.hp <= 0 && context.playerSkill === "hunter") next.aiFighter.hp -= 1;
+    if (next.aiFighter.hp <= 0 && context.aiSkill === "hunter") next.playerFighter.hp -= 1;
+    const playerDead = next.playerFighter.hp <= 0, aiDead = next.aiFighter.hp <= 0;
+    if (playerDead && !aiDead) next.aiScore = (context.aiScore || 0) + 1;
+    if (aiDead && !playerDead) next.playerScore = (context.playerScore || 0) + 1;
+    if (playerDead) { const score = next.playerScore || 0; next.playerFighter = createFighter(context.playerSkill); next.playerFighter.score = score; next.playerEnergy = 0; }
+    if (aiDead) { const score = next.aiScore || 0; next.aiFighter = createFighter(context.aiSkill); next.aiFighter.score = score; next.aiEnergy = 0; }
+  } else {
+    if (result.playerHit && !result.aiHit) next.aiScore = (context.aiScore || 0) + 1;
+    if (result.aiHit && !result.playerHit) next.playerScore = (context.playerScore || 0) + 1;
+  }
+  if (result.reset || result.playerHit || result.aiHit) next.playerEnergy = next.aiEnergy = 0;
+  for (const key of [playerKey, aiKey]) if (skillMove(key).type === "attack" && !next.weaponHistory.includes(key)) next.weaponHistory.push(key);
+  next.afterReset = Boolean(result.reset || result.playerHit || result.aiHit);
+  return next;
+}
+
+function projectPersistentSkill(who, moveKey, opponentMove, dealt, taken, context) {
+  const fighter = who === "ai" ? context.aiFighter : context.playerFighter;
+  const skill = who === "ai" ? context.aiSkill : context.playerSkill;
+  if (skill === "generalist" && moveKey === "forge" && fighter.boostForge) fighter.boostForge = false;
+  if (skill === "generalist" && (dealt > 0 || taken > 0)) fighter.boostForge = true;
+  if (skill === "reaper" && dealt > 0) { fighter.hp++; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); fighter.attack++; }
+  if (skill === "secretKeeper" && dealt > 0) { fighter.hp++; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); }
+  if (skill === "prisoner" && moveKey === "flash" && taken === 0 && skillMove(opponentMove).type === "attack") { fighter.flashSuccesses++; if (fighter.flashSuccesses % 2 === 0) fighter.attackDiscount++; }
+  if (skill === "storm" && moveKey === "katana") fighter.stormDiscount = dealt === 0 ? 1 : 0;
+  if (skill === "demon") fighter.attack += .5;
+  if (skill === "assassin" && moveKey === "knife" && dealt > 0) fighter.assassinUsed = true;
+  fighter.dealtDamageLastRound = dealt > 0;
+}
+
+function candidateAiMoves(context) {
+  if (context.aiEnergy === 0 && context.playerEnergy === 0) return ["forge"];
+  if (context.aiEnergy === 6) return ["void"];
+  return context.skillsEnabled
+    ? legalSkillMoves(context.aiEnergy, context.aiSkill, context.aiFighter, context.scissorsEnabled)
+    : legalMoves(context.aiEnergy, context.scissorsEnabled);
+}
+
+function downsideAdjusted(outcomes, risk) {
+  const total = outcomes.reduce((sum, item) => sum + item.weight, 0) || 1;
+  const expected = outcomes.reduce((sum, item) => sum + item.score * item.weight, 0) / total;
+  const ordered = [...outcomes].sort((a, b) => a.score - b.score);
+  let remaining = total * .35, downside = 0, used = 0;
+  for (const item of ordered) { const take = Math.min(remaining, item.weight); downside += item.score * take; used += take; remaining -= take; if (remaining <= 0) break; }
+  return expected * (1 - risk) + (downside / Math.max(.001, used)) * risk;
+}
+
+function planningValue(context, level, remainingDepth) {
+  if (remainingDepth <= 0) return persistentSkillValue(context) + context.aiEnergy * .22 - context.playerEnergy * .12;
+  const weights = playerMoveWeights(context.playerEnergy, context.history, level.history, context.skillsEnabled ? context.playerSkill : null, context.playerFighter, context.scissorsEnabled, context, level)
+    .sort((a, b) => b.weight - a.weight).slice(0, level.shortlist);
+  let best = -Infinity;
+  for (const aiKey of candidateAiMoves(context)) {
+    const outcomes = weights.map(player => {
+      const immediate = scoreMatchup(player.key, aiKey, context.aiEnergy, context.playerEnergy, context);
+      const next = projectedRoundContext(player.key, aiKey, context);
+      return { weight: player.weight, score: immediate + planningValue(next, level, remainingDepth - 1) * .42 };
+    });
+    best = Math.max(best, downsideAdjusted(outcomes, level.risk));
+  }
+  return best;
+}
+
+function weightedChoice(scored, temperature) {
+  const max = Math.max(...scored.map(item => item.score));
+  const weighted = scored.map(item => ({ ...item, weight: Math.exp((item.score - max) / temperature) }));
+  let roll = Math.random() * weighted.reduce((sum, item) => sum + item.weight, 0);
+  for (const item of weighted) {
+    roll -= item.weight;
+    if (roll <= 0) return item.key;
+  }
+  return weighted[weighted.length - 1].key;
+}
+
+function chooseAiMove(difficulty, context, playerMove = null) {
+  // Absolute rules requested by the game design. They intentionally run before
+  // skill costs or strategic evaluation.
+  if (context.aiEnergy === 0 && context.playerEnergy === 0) return "forge";
+  if (context.aiEnergy === 6) return "void";
+
+  const level = LEVELS[difficulty] || LEVELS.normal;
+  const aiMoves = candidateAiMoves(context);
+  const playerWeights = playerMoveWeights(
+    context.playerEnergy, context.history, level.history,
+    context.skillsEnabled ? context.playerSkill : null, context.playerFighter, context.scissorsEnabled, context, level
+  );
+  if (playerMove && Math.random() < level.responseRate) {
+    return chooseReactiveMove(aiMoves, playerMove, context, level);
+  }
+  const scored = aiMoves.map(aiKey => {
+    const matchupScores = playerWeights.map(player => ({
+      score: scoreMatchup(player.key, aiKey, context.aiEnergy, context.playerEnergy, context)
+        + (level.depth > 1 ? planningValue(projectedRoundContext(player.key, aiKey, context), level, level.depth - 1) * .38 : 0),
+      weight: player.weight
+    }));
+    const repeats = (context.aiMoveHistory || []).slice(-3).filter(key => key === aiKey).length;
+    const exposurePenalty = repeats * level.repeat * (skillMove(aiKey).type === "attack" ? .7 : 1);
+    return { key: aiKey, score: downsideAdjusted(matchupScores, level.risk) - exposurePenalty + (Math.random() - .5) * level.noise };
+  }).sort((a, b) => b.score - a.score);
+
+  if (level.explore && Math.random() < level.explore) {
+    return weightedChoice(scored, 2.5);
+  }
+  return weightedChoice(scored.slice(0, level.shortlist), difficulty === "hell" ? .12 : difficulty === "hard" ? .32 : .72);
+}
+
+function chooseReactiveMove(aiMoves, playerMove, context, level) {
+  const scored = aiMoves.map(aiKey => ({
+    key: aiKey,
+    score: scoreMatchup(playerMove, aiKey, context.aiEnergy, context.playerEnergy, context)
+      + (level.depth > 1 ? planningValue(projectedRoundContext(playerMove, aiKey, context), level, level.depth - 1) * .38 : 0)
+      - (context.aiMoveHistory || []).slice(-3).filter(key => key === aiKey).length * level.repeat
+      + (Math.random() - .5) * level.noise * .18
+  })).sort((a, b) => b.score - a.score);
+
+  const margin = level.responseRate >= .6 ? .12 : level.responseRate >= .4 ? .35 : .7;
+  const nearBest = scored.filter(item => scored[0].score - item.score <= margin);
+  return weightedChoice(nearBest, Math.max(.08, 1 - level.responseRate));
+}
+
+function runAiSelfChecks() {
+  const failures = [];
+  const base = {
+    aiEnergy: 0, playerEnergy: 0, history: [], aiMoveHistory: [], decisionHistory: [], afterReset: false,
+    aiScore: 0, playerScore: 0, winScore: 3, mode: "standard", skillsEnabled: false,
+    playerSkill: "generalist", aiSkill: "generalist", playerFighter: { energy: 0, score: 0 }, aiFighter: { energy: 0, score: 0 },
+    weaponHistory: [], scissorsEnabled: true
+  };
+  if (chooseAiMove("hell", base) !== "forge") failures.push("零能量规则");
+  if (chooseAiMove("hell", { ...base, aiEnergy: 6, playerEnergy: 3 }) !== "void") failures.push("六能量规则");
+  for (const difficulty of Object.keys(LEVELS)) {
+    const context = { ...base, aiEnergy: 3, playerEnergy: 2, history: ["forge", "knife", "guard"], aiMoveHistory: ["forge", "guard"], decisionHistory: [] };
+    const move = chooseAiMove(difficulty, context);
+    if (!legalMoves(3, true).includes(move)) failures.push(`${difficulty}合法性`);
+  }
+  if (failures.length) console.warn("AI self-check:", failures.join("、"));
+  return { passed: failures.length === 0, failures };
+}
+
+
+/* js/storage.js */
+const KEY = "hezhang-game-v2";
+const defaults = {
+  settings: { mode: "standard", difficulty: "normal", winScore: 3, timerEnabled: false, timerSeconds: 15, energyVisible: true, skillsEnabled: false, playerSkill: "generalist", aiSkill: "generalist", scissorsEnabled: false, sound: true },
+  stats: { games: 0, wins: 0, losses: 0, bestStreak: 0, currentStreak: 0, moves: {}, byDifficulty: {} },
+  tutorialSeen: false,
+  firstTurnHintSeen: false
+};
+
+function loadData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+    const merged = { ...defaults, ...saved, settings: { ...defaults.settings, ...saved.settings }, stats: { ...defaults.stats, ...saved.stats } };
+    if (merged.settings.difficulty === "mindreader") merged.settings.difficulty = "hell";
+    return merged;
+  } catch {
+    return structuredClone(defaults);
+  }
+}
+
+function saveData(data) {
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+
+
+/* js/ui.js */
+
+
+const $ = id => document.getElementById(id);
+
+function renderEnergy(id, countId, energy) {
+  $(id).innerHTML = Array.from({ length: MAX_ENERGY }, (_, index) => `<i class="energy-cell ${index < energy ? "filled" : ""}"></i>`).join("");
+  $(countId).textContent = energy;
+}
+
+function renderMoves(energy, onSelect, busy = false, skillKey = null, fighter = {}, scissorsEnabled = false) {
+  const keys = skillKey
+    ? availableMoveKeys(skillKey, scissorsEnabled)
+    : Object.keys(MOVES).filter(key => scissorsEnabled || key !== "scissors");
+  const grid = $("moveGrid");
+  grid.innerHTML = keys.map(key => {
+    const move = skillMove(key);
+    const cost = skillKey ? moveCost(key, skillKey, fighter) : move.cost;
+    const shortfall = Math.max(0, cost - energy);
+    return `<button class="move-card ${move.type}" data-move="${key}" ${busy || shortfall ? "disabled" : ""} aria-label="${move.name}，${move.summary}">
+      <span class="move-icon">${move.icon}</span><strong>${move.name}</strong><small>${shortfall ? `还差 ${shortfall} 格能量` : move.summary}</small>
+      <span class="move-cost">${cost || (move.gain ? "+1" : "0")}</span>
+    </button>`;
+  }).join("");
+  grid.querySelectorAll("[data-move]").forEach(button => button.addEventListener("click", () => onSelect(button.dataset.move)));
+}
+
+function renderRules() {
+  $("ruleGrid").innerHTML = Object.values(MOVES).map(move => `<article class="rule-card"><span>${move.icon}</span><div><strong>${move.name} · ${move.cost ? `${move.cost} 能量` : "免费"}</strong><small>${move.rule}</small></div></article>`).join("");
+  $("skillRuleGrid").innerHTML = Object.values(SKILLS).map(skill => `<article class="rule-card"><span>技</span><div><strong>${skill.name} · ${skill.hp}血${skill.attack}攻</strong><small>${skill.description}</small></div></article>`).join("");
+}
+
+function revealMove(who, moveKey, hidden = false) {
+  const element = $(`${who}Move`);
+  const move = skillMove(moveKey);
+  element.classList.toggle("hidden", hidden);
+  if (move) element.innerHTML = `<span>${move.icon}</span><strong>${move.name}</strong>`;
+}
+
+function showToast(message) {
+  const toast = $("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timeout);
+  showToast.timeout = setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+function showClap() {
+  const overlay = $("clapOverlay");
+  overlay.classList.remove("show");
+  void overlay.offsetWidth;
+  overlay.classList.add("show");
+}
+
+function updateHomeStats(stats) {
+  $("homeGames").textContent = stats.games;
+  $("homeBest").textContent = stats.bestStreak;
+  $("homeWinRate").textContent = stats.games ? `${Math.round(stats.wins / stats.games * 100)}%` : "—";
+}
+
+function renderStats() {
+  const stats = data.stats;
+  const rate = stats.games ? `${Math.round(stats.wins / stats.games * 100)}%` : "—";
+  const moveEntries = Object.entries(stats.moves || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const difficultyEntries = Object.entries(stats.byDifficulty || {});
+  const moves = moveEntries.length ? `<ul>${moveEntries.map(([key, count]) => `<li>${skillMove(key)?.name || key}：${count} 次</li>`).join("")}</ul>` : "<span>完成一局后开始记录</span>";
+  const difficulty = difficultyEntries.length ? `<ul>${difficultyEntries.map(([key, item]) => `<li>${({ easy: "简单", normal: "普通", hard: "困难", hell: "地狱" })[key] || key}：${item.wins || 0} 胜 / ${item.games} 局</li>`).join("")}</ul>` : "<span>完成一局后开始记录</span>";
+  $("statsContent").innerHTML = `<article class="stat-card"><strong>${stats.games}</strong><span>完成对局</span></article><article class="stat-card"><strong>${rate}</strong><span>总胜率</span></article><article class="stat-card"><strong>${stats.bestStreak}</strong><span>最高连胜</span></article><article class="stat-card wide"><b>常用招式</b>${moves}</article><article class="stat-card wide"><b>各难度战绩</b>${difficulty}</article>`;
+}
+
+function setView(name) {
+  document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
+  $(`${name}View`).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+/* js/app.js */
+
+
+
+
+
+
+let data = loadData();
+let state;
+let timerId = null;
+let audioContext = null;
+
+const tutorial = [
+  { icon: "👏 👏", title: "先拍两下", text: "现实游戏里，双方每回合先拍手两次，然后同时做出手势。网页会帮你模拟这个节奏。", demo: "啪 · 啪 · 出招！" },
+  { icon: "✊", title: "锻造能量", text: "锻造能获得1格能量，但锻造时完全没有防御，任何攻击都会命中。", demo: "锻造：0 消耗 → +1 能量" },
+  { icon: "🔪 ⚔️ ✦", title: "等级压制", text: "攻击消耗几格能量，就是几级。同级攻击相互抵消，高级攻击会压制低级攻击。", demo: "同级抵刀 · 高级压制低级" },
+  { icon: "🛡️ 🤲 💨", title: "三种防御", text: "防挡1～2级；接挡2～3级；闪消耗2能量，挡2～5级。接和闪成功后双方能量归零。", demo: "每种防御都有破绽" },
+  { icon: "◉", title: "虚无终结", text: "攒满6格即可使用虚无。它无法被任何防御挡住，但攒能量的过程会让你很危险。", demo: "准备好了，开始第一局吧！" }
+];
+let tutorialIndex = 0;
+
+function newState() {
+  return {
+    player: data.settings.skillsEnabled ? createFighter(data.settings.playerSkill) : { energy: 0, score: 0 },
+    ai: data.settings.skillsEnabled ? createFighter(data.settings.aiSkill) : { energy: 0, score: 0 },
+    endless: { wins: 0, losses: 0, streak: 0, best: 0 },
+    round: 1, busy: false, history: [], aiMoveHistory: [], decisionHistory: [], afterReset: false, weaponHistory: [], log: []
+  };
+}
+
+function init() {
+  state = newState();
+  renderRules();
+  populateSkillSelects();
+  bindEvents();
+  syncSettingsForm();
+  updateHomeStats(data.stats);
+  render();
+  globalThis.__hezhangAiChecks = runAiSelfChecks();
+  /* The self-contained build does not need a Service Worker. */
+}
+
+function bindEvents() {
+  document.querySelectorAll('[data-action="start-game"]').forEach(button => button.addEventListener("click", startGame));
+  document.querySelectorAll('[data-action="start-tutorial"]').forEach(button => button.addEventListener("click", openTutorial));
+  $("homeButton").addEventListener("click", () => { stopTimer(); setView("home"); updateHomeStats(data.stats); });
+  $("statsButton").addEventListener("click", () => { renderStats(); $("statsDialog").showModal(); });
+  $("rulesButton").addEventListener("click", () => $("rulesDialog").showModal());
+  $("settingsButton").addEventListener("click", () => $("settingsDialog").showModal());
+  $("restartButton").addEventListener("click", resetGame);
+  $("battleLogButton").addEventListener("click", () => {
+    const log = $("battleLog");
+    log.open = true;
+    log.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("playAgainButton").addEventListener("click", () => { $("gameOverDialog").close(); resetGame(); });
+  $("backHomeButton").addEventListener("click", () => { $("gameOverDialog").close(); setView("home"); updateHomeStats(data.stats); });
+  $("shareResultButton").addEventListener("click", shareResultCard);
+  $("dismissFirstHint").addEventListener("click", () => { data.firstTurnHintSeen = true; saveData(data); $("firstTurnHint").classList.add("hidden"); });
+  $("tutorialNext").addEventListener("click", nextTutorial);
+  document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => $(button.dataset.close).close()));
+  $("settingsDialog").querySelector("form").addEventListener("submit", saveSettings);
+  $("modeSelect").addEventListener("change", updateSettingsVisibility);
+  $("skillToggle").addEventListener("change", updateSettingsVisibility);
+  $("playerSkillSelect").addEventListener("change", updateSkillDescription);
+  $("aiSkillSelect").addEventListener("change", updateSkillDescription);
+  $("quickModeSelect").addEventListener("change", changeMode);
+}
+
+function startGame() {
+  setView("game");
+  resetGame();
+  if (!data.tutorialSeen) openTutorial();
+}
+
+function resetGame() {
+  stopTimer();
+  state = newState();
+  clearScoreFeedback();
+  render();
+  startTimer();
+}
+
+function render() {
+  renderEnergy("playerEnergy", "playerEnergyCount", state.player.energy);
+  renderEnergy("aiEnergy", "aiEnergyCount", state.ai.energy);
+  $("playerScore").textContent = state.player.score;
+  $("aiScore").textContent = state.ai.score;
+  renderSkillStatus();
+  $("roundNumber").textContent = state.round;
+  const names = { easy: "简单", normal: "普通", hard: "困难", hell: "地狱" };
+  const modeNames = { standard: "标准", endless: "无尽", zen: "禅" };
+  $("modeLabel").textContent = `${modeNames[data.settings.mode]}对决 · ${names[data.settings.difficulty]}`;
+  const continuous = data.settings.mode !== "standard";
+  $("standardScore").classList.toggle("hidden", continuous);
+  $("endlessScore").classList.toggle("hidden", !continuous);
+  $("endlessWins").textContent = state.endless.wins;
+  $("endlessLosses").textContent = state.endless.losses;
+  $("endlessStreak").textContent = state.endless.streak;
+  $("endlessBest").textContent = state.endless.best;
+  const hideEnergy = data.settings.mode === "zen" || !data.settings.energyVisible;
+  $("playerPanel").classList.toggle("energy-hidden", hideEnergy);
+  $("aiPanel").classList.toggle("energy-hidden", hideEnergy);
+  document.body.classList.toggle("zen-mode", data.settings.mode === "zen");
+  renderMoves(
+    state.player.energy, selectMove, state.busy,
+    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player,
+    data.settings.scissorsEnabled
+  );
+  $("logCount").textContent = state.log.length;
+  $("logList").innerHTML = state.log.map(item => {
+    const skillLine = item.skills ? `<br>技能：你「${item.skills.player}」· AI「${item.skills.ai}」` : "";
+    const events = item.skillEvents?.length ? `<br>${item.skillEvents.map(text => `<span class="skill-event">${text}</span>`).join("")}` : "";
+    return `<li><details><summary><b>第${item.round}回合</b>　你 ${skillMove(item.player).name} · AI ${skillMove(item.ai).name}　— ${item.title}</summary><p>${item.detail}${skillLine}${events}<br>能量：你 ${item.before.playerEnergy} → ${item.after.playerEnergy}，AI ${item.before.aiEnergy} → ${item.after.aiEnergy}${item.before.playerHp != null ? `<br>生命：你 ${item.before.playerHp} → ${item.after.playerHp}，AI ${item.before.aiHp} → ${item.after.aiHp}` : ""}</p></details></li>`;
+  }).join("");
+  $("firstTurnHint").classList.toggle("hidden", data.firstTurnHintSeen || state.round > 1);
+}
+
+async function selectMove(playerKey) {
+  const playerCost = data.settings.skillsEnabled
+    ? moveCost(playerKey, data.settings.playerSkill, state.player)
+    : MOVES[playerKey].cost;
+  if (state.busy || playerCost > state.player.energy) return;
+  state.busy = true;
+  stopTimer();
+  renderMoves(
+    state.player.energy, selectMove, true,
+    data.settings.skillsEnabled ? data.settings.playerSkill : null, state.player,
+    data.settings.scissorsEnabled
+  );
+  const aiKey = chooseAiMove(data.settings.difficulty, {
+    aiEnergy: state.ai.energy, playerEnergy: state.player.energy, history: state.history,
+    aiMoveHistory: state.aiMoveHistory, decisionHistory: state.decisionHistory, afterReset: state.afterReset,
+    aiScore: state.ai.score, playerScore: state.player.score,
+    winScore: data.settings.winScore, mode: data.settings.mode,
+    skillsEnabled: data.settings.skillsEnabled,
+    playerSkill: data.settings.playerSkill, aiSkill: data.settings.aiSkill,
+    playerFighter: state.player, aiFighter: state.ai,
+    weaponHistory: state.weaponHistory,
+    scissorsEnabled: data.settings.scissorsEnabled
+  }, playerKey);
+  revealMove("player", playerKey, true);
+  revealMove("ai", aiKey, true);
+  $("clash").className = "clash";
+  $("clashKicker").textContent = "准备";
+  $("clashTitle").textContent = "拍手——";
+  $("clashDetail").textContent = "双方即将同时出招。";
+  await beat();
+  await beat();
+  revealMove("player", playerKey);
+  revealMove("ai", aiKey);
+  settleRound(playerKey, aiKey);
+}
+
+function beat() {
+  showClap();
+  playTone(150);
+  if (navigator.vibrate) navigator.vibrate(35);
+  return new Promise(resolve => setTimeout(resolve, 330));
+}
+
+function settleRound(playerKey, aiKey) {
+  const before = { playerEnergy: state.player.energy, aiEnergy: state.ai.energy, playerHp: data.settings.skillsEnabled ? formatNumber(state.player.hp) : null, aiHp: data.settings.skillsEnabled ? formatNumber(state.ai.hp) : null };
+  const skillEvents = [];
+  const result = data.settings.skillsEnabled
+    ? resolveWithSkills(playerKey, aiKey, data.settings.playerSkill, data.settings.aiSkill)
+    : resolveCombat(playerKey, aiKey);
+  state.pendingPlayerMove = playerKey;
+  state.pendingAiMove = aiKey;
+  skillEvents.push(...applyStartOfRoundSkills());
+  skillEvents.push(...spendAndGain("player", playerKey));
+  skillEvents.push(...spendAndGain("ai", aiKey));
+  for (const key of [playerKey, aiKey]) {
+    if (skillMove(key).type === "attack" && !state.weaponHistory.includes(key)) state.weaponHistory.push(key);
+  }
+  const scoreBefore = { player: state.player.score, ai: state.ai.score };
+  let resultClass = "draw";
+  let skillDetail = "";
+  if (data.settings.skillsEnabled) {
+    const damage = applySkillDamage(result, playerKey, aiKey);
+    resultClass = damage.player > 0 && damage.ai === 0 ? "lose" : damage.ai > 0 && damage.player === 0 ? "win" : "draw";
+    skillDetail = ` · 你 ${formatNumber(state.player.hp)} 生命，AI ${formatNumber(state.ai.hp)} 生命`;
+    skillEvents.push(...applyEndOfRoundSkills(damage, playerKey, aiKey));
+    const deaths = resolveDeaths();
+    if (deaths.player || deaths.ai) {
+      if (deaths.player && !deaths.ai) state.ai.score++;
+      if (deaths.ai && !deaths.player) state.player.score++;
+      if (deaths.player && deaths.ai) resultClass = "draw";
+      resetLivesAfterDeath(deaths);
+    }
+  } else {
+    if (result.playerHit && !result.aiHit) { state.ai.score++; resultClass = "lose"; }
+    if (result.aiHit && !result.playerHit) { state.player.score++; resultClass = "win"; }
+  }
+  if (data.settings.mode !== "standard") {
+    const playerScored = state.player.score > scoreBefore.player;
+    const aiScored = state.ai.score > scoreBefore.ai;
+    if (data.settings.skillsEnabled ? playerScored : resultClass === "win") {
+      state.endless.wins++;
+      state.endless.streak++;
+      state.endless.best = Math.max(state.endless.best, state.endless.streak);
+    } else if (data.settings.skillsEnabled ? aiScored : resultClass === "lose") {
+      state.endless.losses++;
+      state.endless.streak = 0;
+    }
+  }
+  showScoreFeedback(state.player.score - scoreBefore.player, state.ai.score - scoreBefore.ai);
+  if (result.reset || result.playerHit || result.aiHit) state.player.energy = state.ai.energy = 0;
+  state.decisionHistory.push({
+    move: playerKey, playerEnergy: Number(before.playerEnergy), aiEnergy: Number(before.aiEnergy),
+    previousPlayer: state.history.at(-1) || null, previousAi: state.aiMoveHistory.at(-1) || null,
+    afterReset: state.afterReset
+  });
+  state.history.push(playerKey);
+  state.aiMoveHistory.push(aiKey);
+  state.afterReset = Boolean(result.reset || result.playerHit || result.aiHit);
+  const after = { playerEnergy: formatNumber(state.player.energy), aiEnergy: formatNumber(state.ai.energy), playerHp: data.settings.skillsEnabled ? formatNumber(state.player.hp) : null, aiHp: data.settings.skillsEnabled ? formatNumber(state.ai.hp) : null };
+  state.log.unshift({ round: state.round, player: playerKey, ai: aiKey, title: result.title, detail: result.detail + skillDetail, before, after, skillEvents, skills: data.settings.skillsEnabled ? { player: SKILLS[data.settings.playerSkill].name, ai: SKILLS[data.settings.aiSkill].name } : null });
+  data.stats.moves[playerKey] = (data.stats.moves[playerKey] || 0) + 1;
+  $("clash").className = `clash ${resultClass}`;
+  $("clashKicker").textContent = resultClass === "win" ? "你赢下这回合" : resultClass === "lose" ? "AI 赢下这回合" : "本回合平局";
+  $("clashTitle").textContent = result.title;
+  $("clashDetail").textContent = result.detail + skillDetail;
+  if (result.playerHit || result.aiHit) { playTone(resultClass === "win" ? 520 : 95, .18); if (navigator.vibrate) navigator.vibrate(resultClass === "win" ? [40, 30, 70] : 120); }
+  state.round++;
+  state.busy = false;
+  render();
+  if (data.settings.mode === "standard" && (state.player.score >= data.settings.winScore || state.ai.score >= data.settings.winScore)) setTimeout(endGame, 550);
+  else startTimer();
+}
+
+function populateSkillSelects() {
+  const options = SKILL_KEYS.map(key => `<option value="${key}">${SKILLS[key].name} · ${SKILLS[key].hp}血 / ${SKILLS[key].attack}攻</option>`).join("");
+  $("playerSkillSelect").innerHTML = options;
+  $("aiSkillSelect").innerHTML = options;
+}
+
+function updateSkillDescription() {
+  if (!$("skillToggle")?.checked) return;
+  const player = SKILLS[$("playerSkillSelect").value];
+  const ai = SKILLS[$("aiSkillSelect").value];
+  $("skillDescription").innerHTML = `<b>你 · ${player.name}</b>：${player.description}<br><b>AI · ${ai.name}</b>：${ai.description}`;
+}
+
+function renderSkillStatus() {
+  const enabled = data.settings.skillsEnabled;
+  for (const who of ["player", "ai"]) {
+    const skillKey = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
+    const skill = SKILLS[skillKey];
+    $(`${who}SkillBadge`).classList.toggle("hidden", !enabled);
+    $(`${who}HealthRow`).classList.toggle("hidden", !enabled);
+    if (!enabled) continue;
+    $(`${who}SkillBadge`).textContent = `${skill.name} · ${formatNumber(state[who].attack)}攻`;
+    $(`${who}HealthCount`).textContent = formatNumber(state[who].hp);
+    $(`${who}HealthBar`).style.width = `${Math.max(0, Math.min(100, state[who].hp / state[who].maxHp * 100))}%`;
+  }
+}
+
+function applyStartOfRoundSkills() {
+  const events = [];
+  for (const who of ["player", "ai"]) {
+    const skill = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
+    if (skill === "mother" && state[who].dealtDamageLastRound) {
+      state[who].hp = Math.min(state[who].maxHp, state[who].hp + .5);
+      events.push(`${who === "player" ? "你" : "AI"}·母亲技能：回复0.5生命`);
+    }
+  }
+  return events;
+}
+
+function applySkillDamage(result, playerKey, aiKey) {
+  const damage = previewSkillDamage(
+    result, playerKey, aiKey, data.settings.playerSkill, data.settings.aiSkill, state.player, state.ai
+  );
+  if (damage.ai > 0 && data.settings.playerSkill === "assassin" && playerKey === "knife" && !state.player.assassinUsed) {
+    state.player.assassinUsed = true;
+  }
+  if (damage.player > 0 && data.settings.aiSkill === "assassin" && aiKey === "knife" && !state.ai.assassinUsed) {
+    state.ai.assassinUsed = true;
+  }
+  state.player.hp -= damage.player;
+  state.ai.hp -= damage.ai;
+  return damage;
+}
+
+function applyEndOfRoundSkills(damage, playerKey, aiKey) {
+  const events = [];
+  const pairs = [
+    { who: "player", other: "ai", skill: data.settings.playerSkill, dealt: damage.ai, taken: damage.player, move: playerKey },
+    { who: "ai", other: "player", skill: data.settings.aiSkill, dealt: damage.player, taken: damage.ai, move: aiKey }
+  ];
+  for (const item of pairs) {
+    const fighter = state[item.who];
+    const actor = item.who === "player" ? "你" : "AI";
+    if (item.skill === "generalist" && (item.dealt > 0 || item.taken > 0)) { fighter.boostForge = true; events.push(`${actor}·全能者技能：下次锻造强化`); }
+    if (item.skill === "reaper" && item.dealt > 0) { fighter.hp += 1; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); fighter.attack += 1; events.push(`${actor}·死神技能：生命与攻击成长`); }
+    if (item.skill === "secretKeeper" && item.dealt > 0) { fighter.hp += 1; fighter.maxHp = Math.max(fighter.maxHp, fighter.hp); events.push(`${actor}·守密人技能：生命成长`); }
+    const opponentMove = item.who === "player" ? aiKey : playerKey;
+    if (item.skill === "prisoner" && item.move === "flash" && item.taken === 0 && skillMove(opponentMove).type === "attack") {
+      fighter.flashSuccesses++;
+      if (fighter.flashSuccesses % 2 === 0) { fighter.attackDiscount++; events.push(`${actor}·囚徒技能：攻击费用降低`); }
+    }
+    if (item.skill === "storm" && item.move === "katana" && item.dealt === 0) { fighter.stormDiscount = 1; events.push(`${actor}·风暴技能：下次武士刀减费`); }
+    if (item.skill === "demon") { fighter.attack += .5; events.push(`${actor}·魔王技能：攻击提升0.5`); }
+    fighter.dealtDamageLastRound = item.dealt > 0;
+  }
+  return events;
+}
+
+function resolveDeaths() {
+  let playerDead = state.player.hp <= 0;
+  let aiDead = state.ai.hp <= 0;
+  if (playerDead && data.settings.playerSkill === "hunter") state.ai.hp -= 1;
+  if (aiDead && data.settings.aiSkill === "hunter") state.player.hp -= 1;
+  playerDead = state.player.hp <= 0;
+  aiDead = state.ai.hp <= 0;
+  return { player: playerDead, ai: aiDead };
+}
+
+function resetLivesAfterDeath(deaths) {
+  if (!deaths.player && !deaths.ai) return;
+  const scores = { player: state.player.score, ai: state.ai.score };
+  state.player = createFighter(data.settings.playerSkill);
+  state.ai = createFighter(data.settings.aiSkill);
+  state.player.score = scores.player;
+  state.ai.score = scores.ai;
+}
+
+function formatNumber(value) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+function showScoreFeedback(playerPoint, aiPoint) {
+  if (!playerPoint && !aiPoint) return;
+  const feedback = $("scoreFeedback");
+  const playerPanel = $("playerPanel");
+  const aiPanel = $("aiPanel");
+  clearTimeout(showScoreFeedback.timeout);
+  feedback.className = `score-feedback show ${playerPoint ? "win" : aiPoint ? "lose" : ""}`;
+  feedback.textContent = playerPoint
+    ? "你拿下一分。保持这个节奏。"
+    : aiPoint
+      ? "对手拿下一分。下一回合还有机会。"
+      : "双方同时倒下，本回合不计分。";
+  playerPanel.classList.toggle("point-won", Boolean(playerPoint));
+  playerPanel.classList.toggle("point-lost", Boolean(aiPoint));
+  aiPanel.classList.toggle("point-won", Boolean(aiPoint));
+  aiPanel.classList.toggle("point-lost", Boolean(playerPoint));
+  showScoreFeedback.timeout = setTimeout(clearScoreFeedback, 2400);
+}
+
+function clearScoreFeedback() {
+  const feedback = $("scoreFeedback");
+  if (!feedback) return;
+  feedback.className = "score-feedback";
+  feedback.textContent = "";
+  $("playerPanel")?.classList.remove("point-won", "point-lost");
+  $("aiPanel")?.classList.remove("point-won", "point-lost");
+}
+
+function spendAndGain(who, moveKey) {
+  const events = [];
+  const move = skillMove(moveKey);
+  const skill = who === "player" ? data.settings.playerSkill : data.settings.aiSkill;
+  const cost = data.settings.skillsEnabled ? moveCost(moveKey, skill, state[who]) : move.cost;
+  state[who].energy = Math.max(0, state[who].energy - cost);
+  if (move.gain) {
+    const gain = data.settings.skillsEnabled && skill === "generalist" && state[who].boostForge ? 2 : move.gain;
+    state[who].energy = Math.min(MAX_ENERGY, state[who].energy + gain);
+    state[who].boostForge = false;
+    if (gain > move.gain) events.push(`${who === "player" ? "你" : "AI"}·全能者技能：锻造额外获得能量`);
+  }
+  if (data.settings.skillsEnabled && skill === "whiteTower" && whiteTowerRefunds(moveKey, state.weaponHistory)) {
+    state[who].energy = Math.min(MAX_ENERGY, state[who].energy + cost);
+    events.push(`${who === "player" ? "你" : "AI"}·白塔技能：返还${formatNumber(cost)}能量`);
+  }
+  if (data.settings.skillsEnabled && skill === "guardian") {
+    if (moveKey === "guard") { state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .25); events.push(`${who === "player" ? "你" : "AI"}·守卫者技能：防返还0.25能量`); }
+    if (moveKey === "catch") { state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .5); events.push(`${who === "player" ? "你" : "AI"}·守卫者技能：接返还0.5能量`); }
+  }
+  if (data.settings.skillsEnabled && skill === "storm" && moveKey === "katana") state[who].stormDiscount = 0;
+  return events;
+}
+
+function endGame() {
+  stopTimer();
+  const won = state.player.score > state.ai.score;
+  data.stats.games++;
+  if (won) {
+    data.stats.wins++;
+    data.stats.currentStreak++;
+    data.stats.bestStreak = Math.max(data.stats.bestStreak, data.stats.currentStreak);
+  } else {
+    data.stats.losses++;
+    data.stats.currentStreak = 0;
+  }
+  const difficulty = data.settings.difficulty;
+  data.stats.byDifficulty[difficulty] ||= { games: 0, wins: 0 };
+  data.stats.byDifficulty[difficulty].games++;
+  if (won) data.stats.byDifficulty[difficulty].wins++;
+  saveData(data);
+  $("resultSeal").textContent = won ? "胜" : "败";
+  $("gameOverTitle").textContent = won ? "漂亮！" : "再来一次";
+  $("gameOverText").textContent = `${state.player.score} : ${state.ai.score} · ${won ? `当前 ${data.stats.currentStreak} 连胜` : "AI 抓住了你的节奏"}`;
+  $("gameOverDialog").showModal();
+}
+
+async function shareResultCard() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1200;
+  canvas.height = 1600;
+  const ctx = canvas.getContext("2d");
+  const won = state.player.score > state.ai.score;
+  ctx.fillStyle = "#f3eddf"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#d73e2d"; ctx.fillRect(0, 0, 26, canvas.height);
+  ctx.fillStyle = "#171412"; ctx.font = "bold 84px serif"; ctx.fillText("合掌 · 对局战报", 80, 125);
+  const mode = { standard: "标准", endless: "无尽", zen: "禅" }[data.settings.mode];
+  const level = { easy: "简单", normal: "普通", hard: "困难", hell: "地狱" }[data.settings.difficulty];
+  ctx.fillStyle = "#746b60"; ctx.font = "30px sans-serif"; ctx.fillText(`${mode}模式 · ${level}难度 · ${state.round - 1}回合`, 85, 180);
+  ctx.fillStyle = won ? "#d73e2d" : "#324f67"; ctx.font = "bold 164px Georgia"; ctx.fillText(`${state.player.score} : ${state.ai.score}`, 80, 365);
+  ctx.fillStyle = "#171412"; ctx.font = "bold 46px serif"; ctx.fillText(won ? "本局获胜" : "本局惜败", 82, 430);
+  if (data.settings.skillsEnabled) {
+    ctx.fillStyle = "#fffdf7"; ctx.fillRect(80, 475, 1040, 105);
+    ctx.fillStyle = "#171412"; ctx.font = "bold 31px sans-serif"; ctx.fillText(`你：${SKILLS[data.settings.playerSkill].name}`, 110, 520); ctx.fillText(`AI：${SKILLS[data.settings.aiSkill].name}`, 620, 520);
+    ctx.fillStyle = "#746b60"; ctx.font = "24px sans-serif"; ctx.fillText(`${SKILLS[data.settings.playerSkill].hp}血 / ${SKILLS[data.settings.playerSkill].attack}攻`, 110, 557); ctx.fillText(`${SKILLS[data.settings.aiSkill].hp}血 / ${SKILLS[data.settings.aiSkill].attack}攻`, 620, 557);
+  }
+  ctx.fillStyle = "#171412"; ctx.font = "bold 38px serif"; ctx.fillText("回合复盘", 80, 650);
+  const rounds = [...state.log].reverse().slice(-7);
+  let y = 710;
+  for (const item of rounds) {
+    ctx.fillStyle = "#fffdf7"; ctx.fillRect(80, y - 35, 1040, item.skillEvents?.length ? 105 : 76);
+    ctx.fillStyle = "#171412"; ctx.font = "bold 27px sans-serif";
+    ctx.fillText(`第${item.round}回合  你·${skillMove(item.player).name}  /  AI·${skillMove(item.ai).name}`, 105, y);
+    ctx.fillStyle = "#746b60"; ctx.font = "22px sans-serif"; ctx.fillText(`${item.title}　能量 ${item.before.playerEnergy}→${item.after.playerEnergy} / ${item.before.aiEnergy}→${item.after.aiEnergy}`, 105, y + 35);
+    if (item.skillEvents?.length) { ctx.fillStyle = "#8e211b"; ctx.font = "bold 21px sans-serif"; ctx.fillText(item.skillEvents.join("；").slice(0, 58), 105, y + 68); y += 112; }
+    else y += 83;
+  }
+  if (state.log.length > rounds.length) { ctx.fillStyle = "#746b60"; ctx.font = "22px sans-serif"; ctx.fillText(`仅展示最近 ${rounds.length} 回合，完整记录请在游戏内查看。`, 85, y + 5); }
+  const eventCount = state.log.reduce((sum, item) => sum + (item.skillEvents?.length || 0), 0);
+  ctx.fillStyle = "#171412"; ctx.font = "bold 30px sans-serif"; ctx.fillText(`技能触发 ${eventCount} 次　·　常用招式 ${topMoveName()}`, 80, 1530);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+  if (!blob) return showToast("战报生成失败，请重试");
+  const file = new File([blob], "合掌-战报.png", { type: "image/png" });
+  if (navigator.share && navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ title: "合掌战报", text: "我的合掌 AI 练习战报", files: [file] }); return; } catch (error) { if (error.name === "AbortError") return; }
+  }
+  const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "合掌-战报.png"; link.click(); URL.revokeObjectURL(link.href);
+  showToast("战报图片已保存");
+}
+
+function topMoveName() {
+  const counts = {};
+  state.log.forEach(item => { counts[item.player] = (counts[item.player] || 0) + 1; });
+  const key = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0];
+  return key ? skillMove(key).name : "—";
+}
+
+function startTimer() {
+  stopTimer();
+  if (!data.settings.timerEnabled || state.busy) return;
+  const track = $("timerTrack");
+  const bar = $("timerBar");
+  track.classList.remove("hidden");
+  let remaining = data.settings.timerSeconds * 10;
+  bar.style.width = "100%";
+  timerId = setInterval(() => {
+    remaining--;
+    bar.style.width = `${Math.max(0, remaining / (data.settings.timerSeconds * 10) * 100)}%`;
+    if (remaining <= 0) { stopTimer(); showToast("时间到，自动选择“防”"); selectMove("guard"); }
+  }, 100);
+}
+
+function stopTimer() {
+  clearInterval(timerId);
+  timerId = null;
+  $("timerTrack")?.classList.add("hidden");
+}
+
+function openTutorial() {
+  tutorialIndex = 0;
+  renderTutorial();
+  $("tutorialDialog").showModal();
+}
+
+function nextTutorial() {
+  if (tutorialIndex < tutorial.length - 1) { tutorialIndex++; renderTutorial(); return; }
+  data.tutorialSeen = true;
+  saveData(data);
+  $("tutorialDialog").close();
+  if ($("homeView").classList.contains("active")) startGame();
+}
+
+function renderTutorial() {
+  const step = tutorial[tutorialIndex];
+  $("tutorialStep").innerHTML = `<div class="tutorial-icon">${step.icon}</div><p class="eyebrow">${tutorialIndex + 1} / ${tutorial.length}</p><h2>${step.title}</h2><p>${step.text}</p><div class="tutorial-demo">${step.demo}</div>`;
+  $("tutorialDots").innerHTML = tutorial.map((_, index) => `<i class="${index === tutorialIndex ? "active" : ""}"></i>`).join("");
+  $("tutorialNext").textContent = tutorialIndex === tutorial.length - 1 ? "开始练习" : "下一步";
+}
+
+function syncSettingsForm() {
+  $("quickModeSelect").value = data.settings.mode;
+  $("modeSelect").value = data.settings.mode;
+  $("difficultySelect").value = data.settings.difficulty;
+  $("winScoreSelect").value = String(data.settings.winScore);
+  $("timerToggle").checked = data.settings.timerEnabled;
+  $("timerSeconds").value = data.settings.timerSeconds;
+  $("energyToggle").checked = data.settings.energyVisible;
+  $("skillToggle").checked = data.settings.skillsEnabled;
+  $("playerSkillSelect").value = data.settings.playerSkill;
+  $("aiSkillSelect").value = data.settings.aiSkill;
+  $("scissorsToggle").checked = data.settings.scissorsEnabled;
+  $("soundToggle").checked = data.settings.sound;
+  updateSettingsVisibility();
+}
+
+function saveSettings(event) {
+  event.preventDefault();
+  data.settings = {
+    mode: $("modeSelect").value,
+    difficulty: $("difficultySelect").value,
+    winScore: Number($("winScoreSelect").value),
+    timerEnabled: $("timerToggle").checked,
+    timerSeconds: Math.min(15, Math.max(0, Number.isFinite(Number($("timerSeconds").value)) ? Number($("timerSeconds").value) : 15)),
+    energyVisible: $("energyToggle").checked,
+    skillsEnabled: $("skillToggle").checked,
+    playerSkill: $("playerSkillSelect").value,
+    aiSkill: $("aiSkillSelect").value,
+    scissorsEnabled: $("scissorsToggle").checked,
+    sound: $("soundToggle").checked
+  };
+  $("quickModeSelect").value = data.settings.mode;
+  saveData(data);
+  $("settingsDialog").close();
+  showToast("设置已保存");
+  if ($("gameView").classList.contains("active")) resetGame();
+}
+
+function updateSettingsVisibility() {
+  const mode = $("modeSelect").value;
+  $("winScoreSetting").classList.toggle("hidden", mode !== "standard");
+  $("energySetting").classList.toggle("hidden", mode === "zen");
+  const skillsOn = $("skillToggle").checked;
+  $("playerSkillSetting").classList.toggle("hidden", !skillsOn);
+  $("aiSkillSetting").classList.toggle("hidden", !skillsOn);
+  $("skillDescription").classList.toggle("hidden", !skillsOn);
+  updateSkillDescription();
+}
+
+function changeMode() {
+  data.settings.mode = $("quickModeSelect").value;
+  saveData(data);
+  syncSettingsForm();
+  if ($("gameView").classList.contains("active")) resetGame();
+  else render();
+  showToast(`已切换到${{ standard: "标准", endless: "无尽", zen: "禅" }[data.settings.mode]}模式`);
+}
+
+function playTone(frequency, duration = .08) {
+  if (!data.settings.sound) return;
+  try {
+    audioContext ||= new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.frequency.value = frequency;
+    oscillator.type = "triangle";
+    gain.gain.setValueAtTime(.08, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration);
+    oscillator.connect(gain).connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + duration);
+  } catch {}
+}
+
+init();
+
+  </script>
+</body>
+</html>

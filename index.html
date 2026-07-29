@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12100f">
+  <meta name="description" content="合掌：一分钟学会，随时和 AI 练习的拍手对战游戏。">
+  <meta property="og:title" content="合掌 · 拍两下，见真招">
+  <meta property="og:description" content="离线可玩的合掌教学与 AI 练习游戏。">
+  <meta property="og:image" content="assets/og.png">
+  <title>合掌 · 拍两下，见真招</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" id="homeButton" aria-label="返回首页">
+      <span class="brand-mark">合</span>
+      <span><strong>合掌</strong><small>拍两下，见真招</small></span>
+    </button>
+    <nav class="top-actions" aria-label="快捷操作">
+      <select class="quick-mode" id="quickModeSelect" aria-label="游戏模式">
+        <option value="standard">标准</option>
+        <option value="endless">无尽</option>
+        <option value="zen">禅</option>
+      </select>
+      <button class="quiet-button" id="rulesButton">规则</button>
+      <button class="quiet-button" id="settingsButton">设置</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="view home-view active" id="homeView" aria-labelledby="heroTitle">
+      <div class="hero">
+        <p class="eyebrow">无需安装 · 离线可玩 · 一分钟上手</p>
+        <h1 id="heroTitle">拍两下，<br><em>见真招。</em></h1>
+        <p class="hero-copy">锻造攒能量，攻防猜心思。先跟 AI 练几局，再去找同学面对面对决。</p>
+        <div class="hero-actions">
+          <button class="primary-button" data-action="start-game">开始练习 <span>→</span></button>
+          <button class="secondary-button" data-action="start-tutorial">一分钟教学</button>
+        </div>
+      </div>
+
+      <div class="quick-rules" aria-label="核心规则">
+        <article><span>01</span><strong>锻造</strong><p>获得 1 格能量，但此时没有防御。</p></article>
+        <article><span>02</span><strong>出招</strong><p>消耗 N 格能量，就是 N 级攻击。</p></article>
+        <article><span>03</span><strong>博弈</strong><p>高级压低级；防、接、闪各有所长。</p></article>
+      </div>
+
+      <div class="home-stats">
+        <div><strong id="homeGames">0</strong><span>累计练习</span></div>
+        <div><strong id="homeBest">0</strong><span>最高连胜</span></div>
+        <div><strong id="homeWinRate">—</strong><span>练习胜率</span></div>
+      </div>
+    </section>
+
+    <section class="view game-view" id="gameView" aria-labelledby="gameHeading">
+      <div class="game-toolbar">
+        <div>
+          <p class="eyebrow" id="modeLabel">AI 练习 · 普通</p>
+          <h2 id="gameHeading">第 <span id="roundNumber">1</span> 回合</h2>
+        </div>
+        <div class="score" id="standardScore" aria-label="比分">
+          <span><small>你</small><strong id="playerScore">0</strong></span>
+          <i>:</i>
+          <span><small>AI</small><strong id="aiScore">0</strong></span>
+        </div>
+        <div class="endless-score hidden" id="endlessScore" aria-label="无尽模式统计">
+          <span><small>胜</small><strong id="endlessWins">0</strong></span>
+          <span><small>负</small><strong id="endlessLosses">0</strong></span>
+          <span><small>连胜</small><strong id="endlessStreak">0</strong></span>
+          <span><small>最高</small><strong id="endlessBest">0</strong></span>
+        </div>
+      </div>
+      <div class="score-feedback" id="scoreFeedback" role="status" aria-live="polite"></div>
+
+      <div class="duel-board">
+        <article class="fighter ai" id="aiPanel">
+          <div class="fighter-head"><span class="avatar">忍</span><div><small>对手</small><strong>AI 忍者</strong></div></div>
+          <div class="skill-badge hidden" id="aiSkillBadge"></div>
+          <div class="health-row hidden" id="aiHealthRow"><span>生命</span><div class="health-track"><i id="aiHealthBar"></i></div><b id="aiHealthCount">2</b></div>
+          <div class="energy-row"><span>能量</span><div class="energy-track" id="aiEnergy"></div><b id="aiEnergyCount">0</b></div>
+          <div class="revealed-move hidden" id="aiMove"><span>？</span><strong>等待出招</strong></div>
+        </article>
+
+        <div class="clash" id="clash">
+          <p id="clashKicker">准备好了吗？</p>
+          <strong id="clashTitle">选择你的招式</strong>
+          <span id="clashDetail">每回合会先拍手两次，再同时揭晓。</span>
+          <div class="timer-track hidden" id="timerTrack"><i id="timerBar"></i></div>
+        </div>
+
+        <article class="fighter player" id="playerPanel">
+          <div class="fighter-head"><span class="avatar">你</span><div><small>挑战者</small><strong>你</strong></div></div>
+          <div class="skill-badge hidden" id="playerSkillBadge"></div>
+          <div class="health-row hidden" id="playerHealthRow"><span>生命</span><div class="health-track"><i id="playerHealthBar"></i></div><b id="playerHealthCount">2</b></div>
+          <div class="energy-row"><span>能量</span><div class="energy-track" id="playerEnergy"></div><b id="playerEnergyCount">0</b></div>
+          <div class="revealed-move hidden" id="playerMove"><span>？</span><strong>等待出招</strong></div>
+        </article>
+      </div>
+
+      <section class="move-dock" aria-labelledby="moveTitle">
+        <div class="dock-heading">
+          <div><p class="eyebrow">你的回合</p><h3 id="moveTitle">选择招式</h3></div>
+          <button class="text-button" id="restartButton">重新开始</button>
+        </div>
+        <div class="move-legend" aria-hidden="true">
+          <span><i class="basic-dot"></i>蓄力 / 防御</span>
+          <span><i class="attack-dot"></i>攻击</span>
+        </div>
+        <div class="move-grid" id="moveGrid"></div>
+        <p class="dock-hint" id="dockHint">能量不足的招式会自动锁定。</p>
+      </section>
+
+      <details class="battle-log">
+        <summary>战斗记录 <span id="logCount">0</span></summary>
+        <ol id="logList"></ol>
+      </details>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="clap-overlay" id="clapOverlay" aria-hidden="true"><span>啪！</span></div>
+
+  <dialog id="rulesDialog">
+    <div class="dialog-head"><div><p class="eyebrow">随时查阅</p><h2>规则图鉴</h2></div><button class="icon-button" data-close="rulesDialog" aria-label="关闭">×</button></div>
+    <div class="rule-summary"><b>攻击等级 = 消耗能量数</b><span>同级抵刀且均不受伤，高级压制低级。</span></div>
+    <div class="rule-grid" id="ruleGrid"></div>
+    <h3 class="skill-rules-title">技能模式 · 两版共同规则</h3>
+    <div class="rule-grid" id="skillRuleGrid"></div>
+  </dialog>
+
+  <dialog id="settingsDialog">
+    <div class="dialog-head"><div><p class="eyebrow">本机保存</p><h2>练习设置</h2></div><button class="icon-button" data-close="settingsDialog" aria-label="关闭">×</button></div>
+    <form class="settings-form" method="dialog">
+      <label>游戏模式<select id="modeSelect"><option value="standard">标准 · 达到目标胜场结束</option><option value="endless">无尽 · 持续记录连胜</option><option value="zen">禅 · 隐藏能量的无尽对决</option></select></label>
+      <label>AI 难度<select id="difficultySelect"><option value="easy">简单 · 基础策略</option><option value="normal">普通 · 稳健应对</option><option value="hard">困难 · 深度预判</option><option value="hell">地狱 · 极限博弈</option></select></label>
+      <label id="winScoreSetting">目标胜场<select id="winScoreSelect"><option value="1">一局定胜负</option><option value="3">先得 3 分</option><option value="5">先得 5 分</option><option value="7">先得 7 分</option></select></label>
+      <label class="switch-row"><span>回合计时<small>超时自动选择“防”</small></span><input id="timerToggle" type="checkbox"></label>
+      <label>计时秒数<input id="timerSeconds" type="number" min="0" max="15" step="any"></label>
+      <label class="switch-row" id="energySetting"><span>显示能量<small>禅模式会强制隐藏</small></span><input id="energyToggle" type="checkbox"></label>
+      <label class="switch-row"><span>技能模式<small>启用血量、攻击力和角色被动</small></span><input id="skillToggle" type="checkbox"></label>
+      <label id="playerSkillSetting">你的技能<select id="playerSkillSelect"></select></label>
+      <label id="aiSkillSetting">AI 技能<select id="aiSkillSelect"></select></label>
+      <div class="skill-description hidden" id="skillDescription"></div>
+      <label class="switch-row"><span>剪刀模式<small>加入消耗1能量的特殊攻击“剪刀”</small></span><input id="scissorsToggle" type="checkbox"></label>
+      <label class="switch-row"><span>音效<small>拍手和命中反馈</small></span><input id="soundToggle" type="checkbox"></label>
+      <button class="primary-button" value="confirm">保存并重新开始</button>
+    </form>
+  </dialog>
+
+  <dialog id="tutorialDialog" class="tutorial-dialog">
+    <button class="icon-button tutorial-close" data-close="tutorialDialog" aria-label="关闭">×</button>
+    <div class="tutorial-step" id="tutorialStep"></div>
+    <div class="tutorial-footer"><div class="tutorial-dots" id="tutorialDots"></div><button class="primary-button" id="tutorialNext">下一步</button></div>
+  </dialog>
+
+  <dialog id="gameOverDialog" class="game-over-dialog">
+    <p class="eyebrow">本局结束</p><div class="result-seal" id="resultSeal">胜</div>
+    <h2 id="gameOverTitle">漂亮！</h2><p id="gameOverText"></p>
+    <div class="game-over-actions"><button class="primary-button" id="playAgainButton">再来一局</button><button class="secondary-button" id="backHomeButton">返回首页</button></div>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
