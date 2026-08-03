@@ -343,7 +343,8 @@ const SkillTiming=defineModule("skill-timing",(()=>{
 })());
 
 /* js/moves.js */
-const MAX_ENERGY = 6;
+const VOID_COST = 6;
+const ENERGY_DISPLAY_LIMIT = 12;
 
 const MOVES = {
   forge: { name: "锻造", type: "basic", icon: "✊", cost: 0, gain: 1, summary: "+1 能量 · 无防御", rule: "获得1格能量；锻造时被任意攻击命中。" },
@@ -744,7 +745,7 @@ function basicEnergyAfterRound(energy, moveKey, wasHit = false, reset = false) {
   if (reset) return 0;
   const move = skillMove(moveKey);
   const gain = move.gain && !wasHit ? move.gain : 0;
-  return Math.max(0, Math.min(MAX_ENERGY, energy - move.cost + gain));
+  return Math.max(0, energy - move.cost + gain);
 }
 
 function runBasicEnergyChecks() {
@@ -756,6 +757,7 @@ function runBasicEnergyChecks() {
   if (basicEnergyAfterRound(5, "knife", false, basicRoundShouldReset({ playerHit: false, aiHit: true, reset: false })) !== 0) failures.push("攻击命中后双方能量未清零");
   if (basicEnergyAfterRound(2, "forge", true, false) !== 2) failures.push("锻造被命中仍加能量");
   if (basicEnergyAfterRound(2, "forge", false, false) !== 3) failures.push("安全锻造未加能量");
+  if (basicEnergyAfterRound(6, "forge", false, false) !== 7) failures.push("锻数仍被限制为6");
   if (failures.length) console.warn("Basic energy self-check:", failures.join("、"));
   return { passed: failures.length === 0, failures };
 }
@@ -842,7 +844,7 @@ function projectPersistentSkill(who, moveKey, opponentMove, dealt, taken, contex
 
 function candidateAiMoves(context) {
   if (context.aiEnergy === 0 && context.playerEnergy === 0) return ["forge"];
-  if (context.aiEnergy === 6) return ["void"];
+  if (context.aiEnergy >= VOID_COST) return ["void"];
   return context.skillsEnabled
     ? legalSkillMoves(context.aiEnergy, context.aiSkill, context.aiFighter, context.scissorsEnabled)
     : legalMoves(context.aiEnergy, context.scissorsEnabled);
@@ -888,7 +890,7 @@ function chooseAiMove(difficulty, context, playerMove = null) {
   // Absolute rules requested by the game design. They intentionally run before
   // skill costs or strategic evaluation.
   if (context.aiEnergy === 0 && context.playerEnergy === 0) return "forge";
-  if (context.aiEnergy === 6) return "void";
+  if (context.aiEnergy >= VOID_COST) return "void";
 
   const level = LEVELS[difficulty] || LEVELS.normal;
   const aiMoves = candidateAiMoves(context);
@@ -987,8 +989,12 @@ function saveData(data) {
 const $ = id => document.getElementById(id);
 
 function renderEnergy(id, countId, energy) {
-  $(id).innerHTML = Array.from({ length: MAX_ENERGY }, (_, index) => `<i class="energy-cell ${index < energy ? "filled" : ""}"></i>`).join("");
-  $(countId).textContent = energy;
+  const whole = Math.max(0, Math.floor(energy));
+  const cellCount = Math.min(Math.max(VOID_COST, Math.ceil(energy)), ENERGY_DISPLAY_LIMIT);
+  const overflow = Math.max(0, whole - ENERGY_DISPLAY_LIMIT);
+  $(id).innerHTML = Array.from({ length: cellCount }, (_, index) => `<i class="energy-cell ${index < energy ? "filled" : ""}"></i>`).join("")
+    + (overflow ? `<i class="energy-cell filled overflow">+${overflow}</i>` : "");
+  $(countId).textContent = formatNumber(energy);
 }
 
 function renderMoves(energy, onSelect, busy = false, skillKey = null, fighter = {}, scissorsEnabled = false) {
@@ -1149,7 +1155,7 @@ const tutorial = [
   { icon: "✊", title: "锻造能量", text: "锻造能获得1格能量，但锻造时完全没有防御，任何攻击都会命中。", demo: "锻造：0 消耗 → +1 能量" },
   { icon: "🔪 ⚔️ ✦", title: "等级压制", text: "攻击消耗几格能量，就是几级。同级攻击相互抵消，高级攻击会压制低级攻击。", demo: "同级抵刀 · 高级压制低级" },
   { icon: "🛡️ 🤲 💨", title: "三种防御", text: "防挡1～2级；接挡2～3级；闪消耗2能量，挡2～5级。接和闪成功后双方能量归零。", demo: "每种防御都有破绽" },
-  { icon: "◉", title: "虚无终结", text: "攒满6格即可使用虚无。它无法被任何防御挡住，但攒能量的过程会让你很危险。", demo: "准备好了，开始第一局吧！" }
+  { icon: "◉", title: "虚无终结", text: "拥有至少6格能量即可使用虚无。它无法被任何防御挡住；锻数本身没有上限。", demo: "准备好了，开始第一局吧！" }
 ];
 let tutorialIndex = 0;
 
@@ -1373,8 +1379,8 @@ async function resolveSoloJudgeTriggers(damage,events){
       const lm=await chooseMpJudgeDuelAction(left,`${judge.name}选择行动`),rm=await chooseMpJudgeDuelAction(right,`${opponent.name}选择行动`);
       left.energy=Math.max(0,left.energy-MOVES[lm].cost);right.energy=Math.max(0,right.energy-MOVES[rm].cost);
       const result=resolveDuelCombat(lm,rm);
-      if(MOVES[lm].gain&&!result.playerHit)left.energy=Math.min(6,left.energy+MOVES[lm].gain);
-      if(MOVES[rm].gain&&!result.aiHit)right.energy=Math.min(6,right.energy+MOVES[rm].gain);
+      if(MOVES[lm].gain&&!result.playerHit)left.energy+=MOVES[lm].gain;
+      if(MOVES[rm].gain&&!result.aiHit)right.energy+=MOVES[rm].gain;
       if(result.playerHit)left.hp-=right.fighter.attack;if(result.aiHit)right.hp-=left.fighter.attack;
       if(result.reset){left.energy=0;right.energy=0;}
       renderMpJudgeDuel(left,right,lm,rm,`第${step}次出手 · ${result.title}`);events.push(`审判第${step}次：${judge.name}出${skillMove(lm).name}，${opponent.name}出${skillMove(rm).name}`);
@@ -1894,22 +1900,22 @@ function spendAndGain(who, moveKey, allowForgeGain = true) {
   state[who].energy = Math.max(0, state[who].energy - cost);
   if (move.gain && allowForgeGain) {
     const gain = data.settings.skillsEnabled && fighterHasSoloSkill(skill,state[who],"generalist") && state[who].boostForge ? 2 : move.gain;
-    state[who].energy = Math.min(MAX_ENERGY, state[who].energy + gain);
+    state[who].energy += gain;
     state[who].boostForge = false;
     if (gain > move.gain) events.push(`${who === "player" ? "你" : "AI"}·全能者技能：锻造额外获得能量`);
   }
   if (move.gain && !allowForgeGain) events.push(`${who === "player" ? "你" : "AI"}锻造时被攻击命中，未获得能量`);
   if (data.settings.skillsEnabled && fighterHasSoloSkill(skill,state[who],"whiteTower") && whiteTowerRefunds(moveKey, state.weaponHistory)) {
-    state[who].energy = Math.min(MAX_ENERGY, state[who].energy + cost);
+    state[who].energy += cost;
     events.push(`${who === "player" ? "你" : "AI"}·白塔技能：返还${formatNumber(cost)}能量`);
   }
   if (data.settings.skillsEnabled && fighterHasSoloSkill(skill,state[who],"guardian")) {
-    if (moveKey === "guard") { state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .25); events.push(`${who === "player" ? "你" : "AI"}·守卫者技能：防返还0.25能量`); }
-    if (moveKey === "catch") { state[who].energy = Math.min(MAX_ENERGY, state[who].energy + .5); events.push(`${who === "player" ? "你" : "AI"}·守卫者技能：接返还0.5能量`); }
+    if (moveKey === "guard") { state[who].energy += .25; events.push(`${who === "player" ? "你" : "AI"}·守卫者技能：防返还0.25能量`); }
+    if (moveKey === "catch") { state[who].energy += .5; events.push(`${who === "player" ? "你" : "AI"}·守卫者技能：接返还0.5能量`); }
   }
   if (data.settings.skillsEnabled && fighterHasSoloSkill(skill,state[who],"storm") && moveKey === "katana") state[who].stormDiscount = 0;
   if (data.settings.skillsEnabled && fighterHasSoloSkill(skill,state[who],"observer") && moveKey === "catch") {
-    state[who].energy=Math.min(MAX_ENERGY,state[who].energy+.5);state[who].observerCatch=true;
+    state[who].energy+=.5;state[who].observerCatch=true;
     events.push(`${who === "player" ? "你" : "AI"}·观者技能：使用接获得0.5能量`);
   }
   if (data.settings.skillsEnabled && fighterHasSoloSkill(skill,state[who],"dragonKnight") && moveKey === "catch") state[who].dragonCatch++;
@@ -2393,8 +2399,8 @@ async function resolveNoSkillChallenge(fisher,actor){
     const rightMove=await chooseMpJudgeDuelAction(right,`${actor.name}选择行动`);
     left.energy=Math.max(0,left.energy-MOVES[leftMove].cost);right.energy=Math.max(0,right.energy-MOVES[rightMove].cost);
     const result=resolveMultiplayerJudgeCombat(leftMove,rightMove);
-    if(MOVES[leftMove].gain&&!result.playerHit)left.energy=Math.min(6,left.energy+MOVES[leftMove].gain);
-    if(MOVES[rightMove].gain&&!result.aiHit)right.energy=Math.min(6,right.energy+MOVES[rightMove].gain);
+    if(MOVES[leftMove].gain&&!result.playerHit)left.energy+=MOVES[leftMove].gain;
+    if(MOVES[rightMove].gain&&!result.aiHit)right.energy+=MOVES[rightMove].gain;
     renderMpJudgeDuel(left,right,leftMove,rightMove,`第${step}次出手 · ${result.title}`);
     if(result.playerHit||result.aiHit){
       dialog.removeEventListener("cancel",preventJudgeDialogClose);dialog.close();
@@ -2476,7 +2482,7 @@ function mpFighterHtml(f,index=0,total=1,teamColor="#52728a") {
   const owned=[...new Set(f.skills)].map(key=>SKILLS[key]?.name||key);
   const skillText=`${owned.join("、")}${f.dollSkill?` · 秘偶：${SKILLS[f.dollSkill].name}`:""}`;
   const angle=180+(index*360/Math.max(1,total));
-  return `<article class="mp-fighter orbit ${f.human?"human":""} ${f.alive?"":"dead"} ${f.hitThisStep?"hit-pulse":""}" style="--angle:${angle}deg;--team-color:${teamColor}" title="${escapeHtml(`${f.name} · ${skillText}`)}"><div class="mp-fighter-head"><b>${f.name}</b><small>${skillText}</small></div><div class="mp-bars"><span>生命 ${formatNumber(Math.max(0,f.hp))} / ${formatNumber(f.maxHp)}</span><span>能量 ${formatNumber(f.energy)} / 6　·　攻击 ${formatNumber(f.attack)}</span></div><div class="mp-tags">${tags.map(t=>`<i class="mp-tag">${t}</i>`).join("")}</div><div class="mp-last">${f.lastMove?`${mpState.responsePending?"本次揭招":"上次行动"}：${skillMove(f.lastMove).name}`:f.alive?"双手合掌，等待出手":"已淘汰"}</div></article>`;
+  return `<article class="mp-fighter orbit ${f.human?"human":""} ${f.alive?"":"dead"} ${f.hitThisStep?"hit-pulse":""}" style="--angle:${angle}deg;--team-color:${teamColor}" title="${escapeHtml(`${f.name} · ${skillText}`)}"><div class="mp-fighter-head"><b>${f.name}</b><small>${skillText}</small></div><div class="mp-bars"><span>生命 ${formatNumber(Math.max(0,f.hp))} / ${formatNumber(f.maxHp)}</span><span>能量 ${formatNumber(f.energy)}　·　攻击 ${formatNumber(f.attack)}</span></div><div class="mp-tags">${tags.map(t=>`<i class="mp-tag">${t}</i>`).join("")}</div><div class="mp-last">${f.lastMove?`${mpState.responsePending?"本次揭招":"上次行动"}：${skillMove(f.lastMove).name}`:f.alive?"双手合掌，等待出手":"已淘汰"}</div></article>`;
 }
 
 function renderMpFlow(){
@@ -2663,7 +2669,7 @@ function chooseMpTargetTeam(teams){
 function chooseMpAiMove(f) {
   const legal=mpLegalMoves(f);
   if(f.energy===0 && legal.includes("forge"))return "forge";
-  if(f.energy===6 && legal.includes("void"))return "void";
+  if(f.energy>=VOID_COST && legal.includes("void"))return "void";
   const scored=legal.map(key=>({key,score:scoreMpAiMove(f,key)})).sort((a,b)=>b.score-a.score);
   const spread={easy:2.8,normal:1.7,hard:.9,hell:.35}[data.settings.difficulty]??1.7;
   const candidates=scored.filter(x=>scored[0].score-x.score<=spread);
@@ -2722,10 +2728,10 @@ function commitMultiplayerActions(context){
     const cost=mpMoveCost(f,key); f.energy=Math.max(0,f.energy-cost);
     f.defenseQuota=(key==="catch"||key==="flash")?MultiplayerRules.defenseQuotaPerAction:0;
     const m=skillMove(key);
-    if(skillEnabledMp(f,"guardian")){if(key==="guard")f.energy=Math.min(6,f.energy+.25);if(key==="catch")f.energy=Math.min(6,f.energy+.5);}
-    if(skillEnabledMp(f,"observer")&&key==="catch"){f.energy=Math.min(6,f.energy+.5);f.observerCatch=true;}
+    if(skillEnabledMp(f,"guardian")){if(key==="guard")f.energy+=.25;if(key==="catch")f.energy+=.5;}
+    if(skillEnabledMp(f,"observer")&&key==="catch"){f.energy+=.5;f.observerCatch=true;}
     if(skillEnabledMp(f,"dragonKnight")&&key==="catch")f.dragonCatch++;
-    if(skillEnabledMp(f,"whiteTower")&&whiteTowerRefunds(key,mpState.weaponHistory||[]))f.energy=Math.min(6,f.energy+cost);
+    if(skillEnabledMp(f,"whiteTower")&&whiteTowerRefunds(key,mpState.weaponHistory||[]))f.energy+=cost;
     context.actionCommits.set(f.id,{key,beforeEnergy,cost,afterEnergy:f.energy,paid:cost>0});
   }
   context.attacks=aliveMp().filter(f=>actions.has(f.id)&&skillMove(actions.get(f.id))?.type==="attack").map(f=>makeMpAttack(f,actions.get(f.id)));
@@ -2777,7 +2783,7 @@ function settleMultiplayerForgeAndRoundSkills(context){
   for(const f of aliveMp()){
     const move=skillMove(actions.get(f.id));
     if(move?.gain){
-      if(mpShouldGainForge(f,move))f.energy=Math.min(6,f.energy+(skillEnabledMp(f,"generalist")&&f.boostForge?2:move.gain));
+      if(mpShouldGainForge(f,move))f.energy+=skillEnabledMp(f,"generalist")&&f.boostForge?2:move.gain;
       else events.push(`${f.name}锻造时被攻击命中，未获得能量`);
       f.boostForge=false;
     }
@@ -3156,8 +3162,8 @@ async function resolveMpJudgeDuel(judge,opponent,events){
     const rightMove=await chooseMpJudgeDuelAction(right,`${right.fighter.name}选择行动`);
     left.energy=Math.max(0,left.energy-MOVES[leftMove].cost);right.energy=Math.max(0,right.energy-MOVES[rightMove].cost);
     const result=resolveMultiplayerJudgeCombat(leftMove,rightMove);
-    if(MOVES[leftMove].gain&&!result.playerHit)left.energy=Math.min(6,left.energy+MOVES[leftMove].gain);
-    if(MOVES[rightMove].gain&&!result.aiHit)right.energy=Math.min(6,right.energy+MOVES[rightMove].gain);
+    if(MOVES[leftMove].gain&&!result.playerHit)left.energy+=MOVES[leftMove].gain;
+    if(MOVES[rightMove].gain&&!result.aiHit)right.energy+=MOVES[rightMove].gain;
     if(result.playerHit)left.hp-=right.fighter.attack;
     if(result.aiHit)right.hp-=left.fighter.attack;
     if(result.reset){left.energy=0;right.energy=0;}
