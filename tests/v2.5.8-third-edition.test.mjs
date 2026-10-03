@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
 
-const html=fs.readFileSync(new URL('../合掌网页版-正式版本存档/合掌网页版v2.5.8.html',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../合掌网页版-正式版本存档/合掌网页版v2.5.8.1.html',import.meta.url),'utf8');
 const script=html.slice(html.indexOf('<script>')+8,html.lastIndexOf('</script>'));
 const node=()=>({innerHTML:'',textContent:'',value:'',open:false,children:[],style:{setProperty(){}},classList:{add(){},remove(){},toggle(){}},addEventListener(){},removeEventListener(){},showModal(){this.open=true;},close(){this.open=false;},querySelectorAll(){return[];},querySelector(){return node();}});
 function game(){
