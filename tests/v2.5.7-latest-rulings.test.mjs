@@ -35,6 +35,9 @@ assert.match(html, /pioneerDamageTaken=true/, "双人先驱失血必须记录受
 
 const embeddedLiteral = html.match(/const EMBEDDED_RULEBOOK_MD = (.*?);\n\nconst MOVES/s);
 assert.ok(embeddedLiteral, "HTML必须内置规则文档");
-assert.equal(JSON.parse(embeddedLiteral[1]), md, "HTML内置规则必须与MD完全一致");
+// Git stores Markdown with LF, while historical embedded text may retain Windows CRLF.
+// Normalize line endings only; every rule character and blank line must still match.
+const normalizeLineEndings = text => text.replace(/\r\n/g, "\n");
+assert.equal(normalizeLineEndings(JSON.parse(embeddedLiteral[1])), normalizeLineEndings(md), "HTML内置规则必须与MD完全一致（忽略CRLF/LF差异）");
 
 console.log("通过：v2.5.7 最新规则裁决与内置规则一致性检查。");
