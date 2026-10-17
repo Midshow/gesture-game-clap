@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "pages/full/index",
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "合掌 v2.5.8.2",
+    "backgroundColor": "#f5f0e7"
+  },
+  "subpackages": [],
+  "preloadRule": {}
+}

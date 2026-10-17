@@ -1,0 +1,2 @@
+.game-canvas { display: block; width: 100vw; height: 100vh; }
+.error { position: fixed; top: 25%; left: 8%; right: 8%; padding: 24rpx; background: #fffdf8; color: #ad4436; }

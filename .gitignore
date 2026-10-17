@@ -1,9 +1,9 @@
 # Generated packages and deployment output
 /dist/
 
-# Duplicate standalone builds kept at the repository root.
-# Canonical releases live in 合掌网页版-正式版本存档/.
-/合掌网页版v*.html
+# Local source packages and extracted comparison copies.
+# Canonical联机源码位于 /hermes-hezhang/。
+/local-archive/
 
 # Local configuration and secrets
 .env
@@ -26,4 +26,17 @@ Desktop.ini
 .cache/
 coverage/
 node_modules/
+__pycache__/
+*.py[cod]
+/.ai_ruling_render/
+/.docx-scrub/
+/.docx_review_extract/
+/.docx_review_render/
+/tmp/
 
+# Local QA screenshots, measurements, and pre-change copies
+/output/performance/
+/output/v2.5.8-work/
+/output/wechat/
+/output/native-pack/
+/output/*-tests.txt

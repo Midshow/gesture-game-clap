@@ -1,0 +1,7 @@
+{
+  "qq_app_id": "请填写QQ机器人AppID",
+  "qq_app_secret": "请填写QQ机器人AppSecret",
+  "api_base": "http://127.0.0.1:3217",
+  "admin_token": "必须与config.json中的adminToken一致",
+  "log_file": "hezhang_gateway.log"
+}

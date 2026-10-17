@@ -38,7 +38,9 @@ $sourceHtml = $sourceHtml.Replace(
   '/* The self-contained build does not need a Service Worker. */'
 )
 
-$outputPath = Join-Path $projectRoot 'hezhang-offline.html'
+$outputDirectory = Join-Path $projectRoot 'legacy\standalone'
+New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+$outputPath = Join-Path $outputDirectory 'hezhang-offline.html'
 [IO.File]::WriteAllText($outputPath, $sourceHtml, [Text.UTF8Encoding]::new($false))
 
 $output = Get-Item -LiteralPath $outputPath

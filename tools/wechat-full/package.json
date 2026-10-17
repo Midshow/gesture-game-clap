@@ -1,0 +1,13 @@
+{
+  "name": "hezhang-wechat-full-build",
+  "private": true,
+  "scripts": { "build": "node build.cjs" },
+  "dependencies": {
+    "mp-webpack-plugin": "1.6.6",
+    "webpack": "4.47.0",
+    "esbuild": "0.25.12",
+    "miniprogram-render": "2.2.29",
+    "miniprogram-element": "2.2.23",
+    "jsdom": "26.1.0"
+  }
+}

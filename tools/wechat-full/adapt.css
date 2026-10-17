@@ -1,0 +1,8 @@
+/* Modal top-layer and details behavior adapted to small-program components. */
+.h5-dialog { display:none; position:fixed; top:12vh; left:3vw; right:3vw; width:94vw; max-height:78vh; overflow-y:auto; margin:0; box-sizing:border-box; z-index:1000; box-shadow:0 0 0 200vmax rgba(20,25,28,.6); }
+.h5-dialog.wx-open { display:block; }
+details > * { display:none; }
+details.wx-open > *, details > summary { display:block; }
+summary { display:block; }
+body { padding-top:20px; padding-bottom:32px; }
+.online-panel input { min-height:42px; }

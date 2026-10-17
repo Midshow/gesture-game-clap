@@ -1,0 +1,26 @@
+import crypto from "node:crypto";
+import {MOVES,legalMoves,publicRoom,resolveStep,roomRecipients} from "./rules.mjs";
+
+const cleanName=v=>String(v||"").replace(/[\r\n\t]/g," ").trim().slice(0,24);
+const roomCode=()=>String(crypto.randomInt(100000,1000000));
+const num=(v,def)=>v===undefined||v===null||v===""?def:Number(v);
+const enabled=(v,def=true)=>v===undefined||v===null||v===""?def:v===true||v===1||String(v).toLowerCase()==="true"||String(v)==="开";
+export class GameService{
+  constructor(store,{roomIdleHours=24}={}){this.store=store;this.roomIdleMs=Math.max(1,Number(roomIdleHours)||24)*60*60*1000;}
+  cleanupExpired(now=Date.now()){
+    let changed=false;
+    for(const [id,room] of Object.entries(this.store.state.rooms))if(now-(room.updatedAt||room.createdAt||0)>this.roomIdleMs){delete this.store.state.rooms[id];changed=true;}
+    for(const [eventId,at] of Object.entries(this.store.state.processed))if(now-Number(at||0)>this.roomIdleMs){delete this.store.state.processed[eventId];changed=true;}
+    return changed;
+  }
+  get(id){const r=this.store.state.rooms[id];if(!r)throw new Error("房间不存在");return r;}
+  async create({ownerId,ownerName,mode="duo",hp=1,attack=1,energy=0,shield=0,scissors=true}){this.cleanupExpired();if(mode!=="duo")throw new Error("多人模式暂未开放，目前仅支持双人对局");let id;do{id=roomCode();}while(this.store.state.rooms[id]);const room={id,ownerId:String(ownerId),status:"lobby",round:1,step:1,createdAt:Date.now(),updatedAt:Date.now(),settings:{mode:"duo",teams:2,hp:Math.max(1,Math.min(20,num(hp,1))),attack:Math.max(0,Math.min(10,num(attack,1))),energy:Math.max(0,Math.min(10,num(energy,0))),shield:Math.max(0,Math.min(10,num(shield,0))),scissors:enabled(scissors),skills:false,targetRule:"global"},players:[],log:[]};this.store.state.rooms[id]=room;await this.join(id,{userId:ownerId,name:ownerName,team:0});return publicRoom(room);}
+  async join(id,{userId,name,team}){this.cleanupExpired();const r=this.get(id);if(r.status!=="lobby")throw new Error("对局已经开始");const uid=String(userId);if(r.players.some(p=>p.id===uid))return publicRoom(r);if(r.players.length>=2)throw new Error("双人对局房间已满（最多2人）");const t=Number(team);if(!Number.isInteger(t)||t<0||t>=r.settings.teams)throw new Error("队伍编号无效");r.players.push({id:uid,name:cleanName(name)||`玩家${r.players.length+1}`,team:t,energy:r.settings.energy,attack:r.settings.attack,shield:r.settings.shield,hp:r.settings.hp,alive:true,submitted:null});r.updatedAt=Date.now();await this.store.save();return publicRoom(r);}
+  async start(id,userId){this.cleanupExpired();const r=this.get(id);if(r.ownerId!==String(userId))throw new Error("只有房主可以开始");if(r.players.length<2||new Set(r.players.map(p=>p.team)).size<2)throw new Error("至少需要两个敌对阵营");if(r.status==="playing")throw new Error("对局正在进行中");if(r.status==="finished"){for(const p of r.players){p.energy=r.settings.energy;p.hp=r.settings.hp;p.shield=r.settings.shield;p.attack=r.settings.attack;p.alive=true;p.submitted=null;}r.round=1;r.step=1;r.log=[];}r.status="playing";r.log.push({at:new Date().toISOString(),text:"基础联机对局开始；技能模式尚未开放"});r.updatedAt=Date.now();await this.store.save();return publicRoom(r);}
+  view(id,userId){const r=this.get(id),p=r.players.find(x=>x.id===String(userId));return {room:publicRoom(r),you:p?{...p,submitted:p.submitted?{move:p.submitted.move}:null}:null,legal:p&&p.alive&&r.status==="playing"?legalMoves(p,{scissors:r.settings.scissors!==false}):[]};}
+  recipients(id){return roomRecipients(this.get(id));}
+  async submit(id,{userId,move,nonce,eventId}){this.cleanupExpired();const r=this.get(id),uid=String(userId);if(r.status!=="playing")throw new Error("房间不在对局中");if(eventId&&this.store.state.processed[eventId])return this.view(id,uid);const p=r.players.find(x=>x.id===uid&&x.alive);if(!p)throw new Error("你不在该对局中或已经死亡");if(p.submitted)throw new Error("本次出手已经提交，不能修改");const m=MOVES[move];if(!m)throw new Error("未知行动");if(move==="scissors"&&r.settings.scissors===false)throw new Error("本房间未开启剪刀模式");if(p.energy<m.cost)throw new Error(`锻数不足：${m.name}需要${m.cost}锻`);p.submitted={move,nonce:String(nonce||crypto.randomUUID())};if(eventId)this.store.state.processed[eventId]=Date.now();r.updatedAt=Date.now();let resolution=null;if(r.players.filter(x=>x.alive).every(x=>x.submitted))resolution=resolveStep(r);await this.store.save();return {accepted:true,waiting:r.players.filter(x=>x.alive&&!x.submitted).length,resolution,view:this.view(id,uid)};}
+  async deleteRoom(id,userId){this.cleanupExpired();const r=this.get(id);if(r.status!=="lobby")throw new Error("只有大厅状态的房间才能删除");if(!userId||r.ownerId!==String(userId))throw new Error("只有房主可以删除房间");delete this.store.state.rooms[id];await this.store.save();return {id,removed:true};}
+  listRooms(){const rooms=Object.values(this.store.state.rooms);return rooms.map(r=>({id:r.id,status:r.status,round:r.round,settings:r.settings,players:r.players.map(({name,team,hp,attack,shield,energy,alive,submitted})=>({name,team,hp,attack,shield,energy,alive,submitted:Boolean(submitted)})),pending:r.players.filter(p=>p.alive&&!p.submitted).length,updatedAt:r.updatedAt}));}
+  exportRoom(id){const r=this.get(id);if(r.status!=="finished")throw new Error("对局未结束，暂不能导出战斗记录");return {id:r.id,status:r.status,round:r.round,settings:r.settings,players:r.players.map(({name,team})=>({name,team})),log:r.log,exportedAt:new Date().toISOString()};}
+}
