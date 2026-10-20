@@ -333,6 +333,22 @@ html[data-fx="high"] #moveGrid > *:hover{ box-shadow:0 12px 26px rgba(0,0,0,.6),
   #moveGrid > *{ animation:none; }
   dialog[open],.fx-view-in{ animation-duration:.15s; }
 }
+
+/* ---------- 8. 场景类高特异性覆盖（修复 body.scene-* 素色纸面压制） ---------- */
+body.scene-paper, body.scene-corridor, body.scene-playground{
+  background-color:var(--ink);
+  background-image:
+    repeating-linear-gradient(115deg, rgba(63,125,107,.08) 0 14px, transparent 14px 46px),
+    repeating-linear-gradient(65deg, rgba(223,233,234,.05) 0 10px, transparent 10px 60px),
+    linear-gradient(180deg,#0b1016 0%,#0e1c28 55%,#122634 100%);
+  background-size:340% 340%, 280% 280%, 100% 100%;
+  animation:fxWaveDrift 26s linear infinite;
+}
+html[data-fx="low"] body.scene-paper, html[data-fx="low"] body.scene-corridor, html[data-fx="low"] body.scene-playground{
+  background-color:var(--ink);
+  background-image:linear-gradient(180deg,#0b1016 0%,#0e1c28 55%,#122634 100%);
+  animation:none;
+}
 </style>
 </head>
 <body>
