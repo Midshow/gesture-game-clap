@@ -1338,6 +1338,103 @@ html[data-fx="low"] .beat-ring{display:none}
   .duel-board::after{display:none}
 }
 
+/* ============================================================
+   真 3D 镜头层 v2.7.1 —— DOM 入 Z 轴，非 scale 伪 3D
+   原理：duel-board 立 3D 场景，面板赋 Z 深，镜头=场景 rotateY/rotateX
+   ============================================================ */
+
+/* 场景容器：真 3D 空间 */
+.duel-board{
+  perspective:900px;
+  perspective-origin:50% 42%;
+  transform-style:preserve-3d;
+}
+/* 场景内旋体：镜头运动作用于此 */
+.duel-board .fighter,.duel-board .clash{
+  transform-style:preserve-3d;
+  backface-visibility:hidden;
+}
+/* 双方站位：玩家近（Z+40）、AI 远（Z-60），天然景深 */
+.fighter.player{transform:translateZ(46px) rotateY(7deg)}
+.fighter.ai{transform:translateZ(-64px) rotateY(-7deg) scale(.96)}
+.clash{transform:translateZ(-8px)}
+html[data-fx="low"] .fighter.player,html[data-fx="low"] .fighter.ai,html[data-fx="low"] .clash{transform:none}
+
+/* 景深模糊：远者微糊（镜头焦外） */
+.fighter.ai{filter:blur(.4px) brightness(.94)}
+html[data-fx="low"] .fighter.ai{filter:none}
+@media(max-width:800px){
+  .fighter.player,.fighter.ai,.clash{transform:none;filter:none}
+}
+
+/* === 镜头运动（作用于整个 duel-board 场景，非单个面板）=== */
+.duel-board{transition:transform .45s cubic-bezier(.22,1,.36,1)}
+/* 起势：镜头右摆缓推（玩家视角压向 AI） */
+.duel-board.cam-orbit-push{
+  transform:rotateY(-6deg) rotateX(2deg) translateZ(70px);
+  transition:transform .8s cubic-bezier(.22,1,.36,1);
+}
+/* 命中：镜头猛沉+侧甩（受击方向） */
+.duel-board.cam-orbit-hit-p{
+  transform:rotateY(9deg) rotateX(-2deg) translateZ(40px);
+  transition:transform .14s cubic-bezier(.36,.07,.19,.97);
+}
+.duel-board.cam-orbit-hit-a{
+  transform:rotateY(-11deg) rotateX(-2deg) translateZ(90px);
+  transition:transform .14s cubic-bezier(.36,.07,.19,.97);
+}
+/* 大招：镜头拉远仰角（仰望终结技） */
+.duel-board.cam-orbit-ult{
+  transform:rotateX(6deg) rotateY(4deg) translateZ(-50px) scale(.94);
+  transition:transform .9s cubic-bezier(.22,1,.36,1);
+}
+html[data-fx="low"] .duel-board[class*="cam-orbit"]{transform:none!important}
+
+/* 冲身真 3D：攻方沿 Z 轴扑向对手（非平面位移） */
+@keyframes lunge3dP{
+  0%{transform:translateZ(46px) rotateY(7deg)}
+  32%{transform:translateZ(150px) rotateY(4deg) translateX(6%)}
+  100%{transform:translateZ(46px) rotateY(7deg)}
+}
+@keyframes lunge3dA{
+  0%{transform:translateZ(-64px) rotateY(-7deg) scale(.96)}
+  32%{transform:translateZ(60px) rotateY(-3deg) translateX(-6%) scale(1.02)}
+  100%{transform:translateZ(-64px) rotateY(-7deg) scale(.96)}
+}
+.fighter.player.lunge{animation:lunge3dP .5s cubic-bezier(.22,1,.36,1)}
+.fighter.ai.lunge{animation:lunge3dA .5s cubic-bezier(.22,1,.36,1)}
+html[data-fx="low"] .fighter.lunge{animation:none}
+@media(max-width:800px){
+  .fighter.player.lunge,.fighter.ai.lunge{animation:none}
+}
+
+/* 受击：面板被击退入深处+翻仰 */
+@keyframes knockbackP{
+  0%{transform:translateZ(46px) rotateY(7deg)}
+  25%{transform:translateZ(-30px) rotateY(12deg) rotateX(-4deg) translateX(-4%)}
+  60%{transform:translateZ(30px) rotateY(6deg)}
+  100%{transform:translateZ(46px) rotateY(7deg)}
+}
+@keyframes knockbackA{
+  0%{transform:translateZ(-64px) rotateY(-7deg) scale(.96)}
+  25%{transform:translateZ(-170px) rotateY(-12deg) rotateX(-4deg) translateX(4%) scale(.9)}
+  60%{transform:translateZ(-70px) rotateY(-6deg) scale(.95)}
+  100%{transform:translateZ(-64px) rotateY(-7deg) scale(.96)}
+}
+.fighter.player.knockback{animation:knockbackP .55s cubic-bezier(.36,.07,.19,.97)}
+.fighter.ai.knockback{animation:knockbackA .55s cubic-bezier(.36,.07,.19,.97)}
+html[data-fx="low"] .fighter.knockback{animation:none}
+@media(max-width:800px){
+  .fighter.knockback{animation:none}
+}
+
+/* 出招坞亦入浅 3D：棋子悬浮高度差 */
+.move-card{transform:translateZ(0)}
+.move-card:hover:not(:disabled){transform:translateY(-8px) translateZ(24px) scale(1.07)}
+
+/* 月轮渊眼：浮于场景更深处 */
+.clash::before{transform:translateZ(-40px)}
+
 </style>
 </head>
 <body>
@@ -3318,8 +3415,8 @@ async function resolveDuelDamagePipeline(result, playerKey, aiKey,preHit=null) {
   state.ai.hp -= damage.ai;
   /* 打击感：技能模式真实伤害直挂 */
   if (window.__impact) {
-    if (damage.ai>0) { window.__impact({victim:"ai",kind:"hit",text:"-"+formatNumber(damage.ai)}); window.__sfxHit&&window.__sfxHit(); window.__cam&&window.__cam.hit(); window.__verdict&&window.__verdict("破","win"); }
-    if (damage.player>0) { window.__impact({victim:"player",kind:"hit",text:"-"+formatNumber(damage.player)}); window.__sfxHit&&window.__sfxHit(); window.__cam&&window.__cam.hit(); window.__verdict&&window.__verdict("中","lose"); }
+    if (damage.ai>0) { window.__impact({victim:"ai",kind:"hit",text:"-"+formatNumber(damage.ai)}); window.__sfxHit&&window.__sfxHit(); window.__cam&&window.__cam.hit("ai"); window.__verdict&&window.__verdict("破","win"); }
+    if (damage.player>0) { window.__impact({victim:"player",kind:"hit",text:"-"+formatNumber(damage.player)}); window.__sfxHit&&window.__sfxHit(); window.__cam&&window.__cam.hit("player"); window.__verdict&&window.__verdict("中","lose"); }
     if (damage.ai<=0&&damage.player<=0&&(roundEvent.hit.player||roundEvent.hit.ai)) { window.__sfxGuard&&window.__sfxGuard(); window.__verdict&&window.__verdict("御","guard"); }
   }
   for(const who of ["player","ai"]){if(state[who].hp<=0)state[who].attackLethal=Boolean(roundEvent.hit[who]);const absorb=who==="player"?playerAbsorb:aiAbsorb;if(absorb.dealt>0)state[finalAttacker[who]].saintBonus=0;await saintSolo258(who,events);}
@@ -3585,8 +3682,8 @@ function showScoreFeedback(playerPoint, aiPoint) {
   if (!playerPoint && !aiPoint) return;
   /* 打击感：得分即命中（无技能模式）；技能模式由管线另挂 */
   if (window.__impact) {
-    if (playerPoint) { window.__impact({victim:"ai",kind:"hit",text:"+1"}); window.__sfxHit&&window.__sfxHit(); window.__cam&&window.__cam.hit(); window.__verdict&&window.__verdict("破","win"); }
-    else if (aiPoint) { window.__impact({victim:"player",kind:"hit",text:"+1"}); window.__sfxHit&&window.__sfxHit(); window.__cam&&window.__cam.hit(); window.__verdict&&window.__verdict("中","lose"); }
+    if (playerPoint) { window.__impact({victim:"ai",kind:"hit",text:"+1"}); window.__sfxHit&&window.__sfxHit(); window.__cam&&window.__cam.hit("ai"); window.__verdict&&window.__verdict("破","win"); }
+    else if (aiPoint) { window.__impact({victim:"player",kind:"hit",text:"+1"}); window.__sfxHit&&window.__sfxHit(); window.__cam&&window.__cam.hit("player"); window.__verdict&&window.__verdict("中","lose"); }
   }
   const feedback = $("scoreFeedback");
   const playerPanel = $("playerPanel");
@@ -5615,8 +5712,16 @@ globalThis.__hezhangModules=[...ENGINE_MODULES.keys()];
     const g=ctx.createGain();env(g,t,.15,.22,BEAT*2.2);
     o.connect(lp);lp.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+BEAT*2.5);
   };
-  /* ---- 镜头导演 ---- */
+  /* ---- 镜头导演（真 3D：作用于 duel-board 场景容器）---- */
   const gameView=()=>document.getElementById("gameView");
+  const board=()=>document.querySelector(".duel-board");
+  function orbit(cls,hold){
+    if(fx()==="low")return;
+    const b=board();if(!b)return;
+    b.classList.remove("cam-orbit-push","cam-orbit-hit-p","cam-orbit-hit-a","cam-orbit-ult");
+    void b.offsetWidth;b.classList.add(cls);
+    if(hold)setTimeout(()=>b.classList.remove(cls),hold);
+  }
   function vignette(on){
     let v=document.querySelector(".vignette");
     if(!v){v=document.createElement("div");v.className="vignette";document.body.appendChild(v)}
@@ -5626,17 +5731,28 @@ globalThis.__hezhangModules=[...ENGINE_MODULES.keys()];
     aim(){if(fx()==="low")return;gameView()?.classList.add("cam-aim")},
     release(){gameView()?.classList.remove("cam-aim")},
     push(big){
-      if(fx()==="low")return;
-      gameView()?.classList.add("cam-push");
-      if(big)vignette(true);
+      if(big){orbit("cam-orbit-ult");vignette(true)}
+      else orbit("cam-orbit-push");
     },
-    hit(){
+    hit(who){
+      /* who='player' 玩家命中 AI（镜头压向 AI），'ai' AI 命中玩家（镜头甩向玩家） */
+      orbit(who==="ai"?"cam-orbit-hit-p":"cam-orbit-hit-a");
       if(fx()==="low")return;
       const g=gameView();g.classList.remove("cam-push","cam-aim","cam-hit");
       void g.offsetWidth;g.classList.add("cam-hit");
-      setTimeout(()=>{g.classList.remove("cam-hit");vignette(false)},580);
+      setTimeout(()=>{
+        g.classList.remove("cam-hit");vignette(false);
+        board()?.classList.remove("cam-orbit-push","cam-orbit-hit-p","cam-orbit-hit-a","cam-orbit-ult");
+      },580);
+      /* 受击者 3D 击退 */
+      const victim=document.getElementById(who==="ai"?"aiPanel":"playerPanel");
+      if(victim&&fx()!=="low"){victim.classList.remove("knockback");void victim.offsetWidth;victim.classList.add("knockback");setTimeout(()=>victim.classList.remove("knockback"),600)}
     },
-    reset(){gameView()?.classList.remove("cam-push","cam-aim","cam-hit");vignette(false)}
+    reset(){
+      gameView()?.classList.remove("cam-push","cam-aim","cam-hit");
+      board()?.classList.remove("cam-orbit-push","cam-orbit-hit-p","cam-orbit-hit-a","cam-orbit-ult");
+      vignette(false);
+    }
   };
   /* 顿帧：凝滞 ms 毫秒（点到即止，≤180ms） */
   window.__hitstop=function(ms){
